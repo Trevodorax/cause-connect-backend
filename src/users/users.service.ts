@@ -15,6 +15,8 @@ import {
 } from './users.dto';
 import * as bcrypt from 'bcrypt';
 import { Association } from 'src/associations/associations.entity';
+import { EmailService } from 'src/email/email.service';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class UsersService {
@@ -23,16 +25,19 @@ export class UsersService {
     private userRepository: Repository<User>,
     @InjectRepository(Association)
     private associationRepository: Repository<Association>,
+    private emailService: EmailService,
   ) {}
   async resetPassword(dto: ResetPasswordDto): Promise<User> {
     const user = await this.userRepository.findOne({
-      where: { passwordResetCode: dto.resetPasswordCode },
+      where: { passwordResetCode: dto.passwordResetCode },
+      relations: ['association'],
     });
     if (!user || user.passwordResetCode === null) {
       throw new UnauthorizedException('Wrong reset password code');
     }
 
     user.passwordHash = await this.passwordToHash(dto.newPassword);
+    user.passwordResetCode = undefined;
 
     await this.userRepository.save(user);
 
@@ -71,14 +76,23 @@ export class UsersService {
       throw new NotFoundException('Association not found');
     }
 
+    const code = uuidv4();
+
     // insert user into the database
     const result = await this.userRepository.insert({
       email: user.email,
       fullName: user.fullName,
       role: user.role,
       association: association,
+      passwordResetCode: code,
     });
     const userId = result.generatedMaps[0].id;
+
+    this.emailService.sendPasswordResetEmail({
+      email: user.email,
+      fullName: user.fullName,
+      passwordResetCode: code,
+    });
 
     // return the newly created user
     return this.userRepository.findOneBy({ id: userId });
@@ -133,6 +147,7 @@ export class UsersService {
   async findOneByEmailInAssociation(email: string, associationId: string) {
     return this.userRepository.findOne({
       where: { email, association: { id: associationId } },
+      relations: ['association'],
     });
   }
 

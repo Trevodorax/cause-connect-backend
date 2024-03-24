@@ -1,7 +1,7 @@
 import { UserRole } from './users.entity';
 
 export interface ResetPasswordDto {
-  resetPasswordCode: string;
+  passwordResetCode: string;
   newPassword: string;
 }
 

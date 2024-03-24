@@ -7,7 +7,7 @@ import * as bcrypt from 'bcrypt';
 import { ConfigService } from '@nestjs/config';
 
 interface ResetPasswordDto {
-  resetPasswordCode: string;
+  passwordResetCode: string;
   newPassword: string;
 }
 
@@ -27,7 +27,7 @@ export class AuthService {
   async resetPassword(dto: ResetPasswordDto): Promise<string> {
     const user = await this.userService.resetPassword(dto);
 
-    const payload = this.userToPayload(user);
+    const payload = this.userToPayload(user, user.association.id);
     const token = await this.jwtService.signAsync(payload, {
       expiresIn: '24h',
       secret: this.configService.get<string>('JWT_SECRET'),
@@ -53,7 +53,7 @@ export class AuthService {
     if (!(await bcrypt.compare(dto.password, user.passwordHash))) {
       throw new UnauthorizedException("Password doesn't match");
     }
-    const payload = this.userToPayload(user);
+    const payload = this.userToPayload(user, user.association.id);
     const token = await this.jwtService.signAsync(payload, {
       expiresIn: '24h',
       secret: this.configService.get<string>('JWT_SECRET'),
@@ -61,10 +61,10 @@ export class AuthService {
     return token;
   }
 
-  private userToPayload(user: User): UserPayload {
+  private userToPayload(user: User, associationId: string): UserPayload {
     const payload: UserPayload = {
       id: user.id,
-      associationId: user.association.id,
+      associationId: associationId,
       role: user.role,
     };
 

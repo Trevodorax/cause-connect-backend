@@ -7,6 +7,7 @@ import { UsersModule } from './users/users.module';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmConfigService } from './config/database.config';
 import { AssociationsModule } from './associations/associations.module';
+import { EmailModule } from './email/email.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { AssociationsModule } from './associations/associations.module';
     UsersModule,
     AuthModule,
     AssociationsModule,
+    EmailModule,
   ],
   providers: [AppService, AuthService],
 })
