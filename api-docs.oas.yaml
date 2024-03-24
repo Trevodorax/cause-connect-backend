@@ -1,0 +1,2932 @@
+openapi: 3.0.3
+info:
+  title: Cause connect API
+  description: API for the cause connect service
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.0
+externalDocs:
+  description: Find out more about Swagger
+  url: http://swagger.io
+servers:
+  # Added by API Auto Mocking Plugin
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/Trevodorax/cause-connect/1.0.0
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/Trevodorax/TeaMaker/1.0.0
+  - url: http://localhost:3000/
+tags:
+  - name: association
+    description: Routes concerning associations
+  - name: user
+    description: Routes concerning users
+  - name: document
+    description: Routes concerning documents
+  - name: survey
+    description: Routes concerning surveys
+  - name: vote
+    description: Routes concerning votes
+  - name: meeting
+    description: Routes concerning meetings
+  - name: contribution
+    description: Routes concerning contributions
+  - name: donation
+    description: Routes concerning donations
+  - name: chat
+    description: Routes concerning chat
+  - name: project
+    description: Routes concerning projects
+  - name: task
+    description: Routes concerning tasks
+  - name: feed
+    description: Routes concerning the feed
+  - name: settings
+    description: Routes concerning the settings
+paths:
+  /associations:
+    get:
+      tags:
+        - association
+      description: Get all associations
+      responses:
+        '200':
+          description: Successfully retrieved associations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Association'
+    post:
+      tags:
+        - association
+      description: Create a new association
+      requestBody:
+        description: Informations about the new association
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - user
+                - association
+              properties:
+                user:
+                  $ref: '#/components/schemas/NewUser'
+                association:
+                  $ref: '#/components/schemas/NewAssociation'
+        required: true
+      responses:
+        '200':
+          description: Successfully created association
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Association'
+        '422':
+          description: Invalid association data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /associations/{associationId}:
+    delete:
+      tags:
+        - association
+      description: Delete an existing association
+      parameters:
+        - in: path
+          name: associationId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully deleted association
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Association'
+        '404':
+          description: Association not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    get:
+      tags:
+        - association
+      description: Get infos of an existing association
+      parameters:
+        - in: path
+          name: associationId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully retrieved association
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Association'
+        '404':
+          description: Association not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    patch:
+      tags: 
+        - association
+      description: Change infos of an existing association
+      parameters:
+        - in: path
+          name: associationId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Informations to update
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - association
+              properties:
+                association:
+                  $ref: '#/components/schemas/PartialAssociation'
+      responses:
+        '200':
+          description: Successfully updated association
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Association'
+        '404':
+          description: Association not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid association data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /associations/{associationId}/bank-info:
+    post:
+      tags:
+        - association
+      description: Add bank infos to an existing association
+      parameters:
+        - in: path
+          name: associationId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Bank infos to add
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - bankInfo
+              properties:
+                bankInfo:
+                  $ref: '#/components/schemas/BankInfo'
+      responses:
+        '200':
+          description: Successfully added bank infos
+        '404':
+          description: Association not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid bank info data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    patch:
+      tags:
+        - association
+      description: Modify bank infos of an existing association
+      parameters:
+        - in: path
+          name: associationId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Informations to update
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - bankInfo
+              properties:
+                bankInfo:
+                  $ref: '#/components/schemas/BankInfo'
+      responses:
+        '200':
+          description: Successfully updated bank infos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Association'
+        '404':
+          description: Association not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid bank info data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /users:
+    post:
+      tags:
+        - user
+      description: Create a new user
+      requestBody:
+        description: Informations about the new user
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewUser'
+        required: true
+      responses:
+        '200':
+          description: Successfully created user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '422':
+          description: Invalid user data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    get:
+      tags:
+        - user
+      description: Get all users from the association of the authenticated user
+      parameters:
+        - in: query
+          name: role
+          schema:
+            type: string
+            enum: [admin, internal, external]
+        - in: query
+          name: search
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully retrieved users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+  /users/{userId}:
+    patch:
+      tags:
+        - user
+      description: Update an existing user
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Informations to update
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - user
+              properties:
+                user:
+                  $ref: '#/components/schemas/PartialUser'
+      responses:
+        '200':
+          description: Successfully updated user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - user
+      description: Delete an existing user
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully deleted user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /users/{userId}/send-password-email:
+    post:
+      tags:
+        - user
+      description: Send an email to the user to reset his password
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully sent email
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  email:
+                    type: string
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /auth/login:
+    post:
+      tags:
+        - user
+      description: Login to the application
+      requestBody:
+        description: Informations to login
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Login'
+        required: true
+      responses:
+        '200':
+          description: Successfully logged in
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /auth/reset-password:
+    post:
+      tags:
+        - user
+      description: Reset the password of the user
+      requestBody:
+        description: Informations to reset the password
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - passwordResetCode
+                - newPassword
+              properties:
+                passwordResetCode:
+                  type: string
+                newPassword:
+                  type: string
+        required: true
+      responses:
+        '200':
+          description: Successfully reset password
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+        '401':
+          description: Invalid password reset code
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /documents:
+    get:
+      tags:
+        - document
+      description: Get all documents I can access
+      responses:
+        '200':
+          description: Successfully retrieved documents
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    visibility:
+                      type: string
+                      enum: [public, private]
+                    permissions:
+                      type: string
+                      enum: [read, edit]
+    post:
+      tags:
+        - document
+      description: Upload a document
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+                - visibility
+              properties:
+                file:
+                  type: string
+                  format: binary
+                visibility:
+                  type: string
+                  enum: [public, private]
+      responses:
+        '200':
+          description: Successfully uploaded document
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+        '422':
+          description: Invalid document data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /documents/{documentId}:
+    get:
+      tags:
+        - document
+      description: Download a document
+      parameters:
+        - in: path
+          name: documentId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully retrieved document
+          content:
+            '*':
+              schema:
+                type: string
+                format: binary  # Indicates binary data for download
+        '404':
+          description: Document not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - document
+      description: Delete a document
+      parameters:
+        - in: path
+          name: documentId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully deleted document
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+        '404':
+          description: Document not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /documents/{documentId}/share-code:
+    get:
+      tags:
+        - document
+      description: Get the share code of a document
+      parameters:
+        - in: path
+          name: documentId
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: permissions
+          schema:
+            type: string
+            enum: [read, edit]
+      responses:
+        '200':
+          description: Successfully retrieved share code
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  shareCode:
+                    type: string
+        '404':
+          description: Document not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /documents/use-share-code:  
+    post:
+      tags:
+        - document
+      description: Use a share code to get access to a document
+      requestBody:
+        description: Share code to use
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - shareCode
+              properties:
+                shareCode:
+                  type: string
+      responses:
+        '200':
+          description: Successfully used share code
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  documentId:
+                    type: string
+        '404':
+          description: Document not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /surveys:
+    post:
+      tags:
+        - survey
+      description: Create a new survey
+      requestBody:
+        description: Informations about the new survey
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewSurvey'
+        required: true
+      responses:
+        '200':
+          description: Successfully created survey
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+        '422':
+          description: Invalid survey data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    get:
+      tags:
+        - survey
+      description: Get all surveys
+      responses:
+        '200':
+          description: Successfully retrieved surveys
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Survey'
+  /surveys/{surveyId}:
+    get:
+      tags:
+        - survey
+      description: Get infos of an existing survey
+      parameters:
+        - in: path
+          name: surveyId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully retrieved survey
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Survey'
+        '404':
+          description: Survey not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - survey
+      description: Delete an existing survey
+      parameters:
+        - in: path
+          name: surveyId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully deleted survey
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+        '404':
+          description: Survey not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    patch:
+      tags:
+        - survey
+      description: Change infos of an existing survey
+      parameters:
+        - in: path
+          name: surveyId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Informations to update
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - survey
+              properties:
+                survey:
+                  $ref: '#/components/schemas/PartialSurvey'
+      responses:
+        '200':
+          description: Successfully updated survey
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Survey'
+        '404':
+          description: Survey not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid survey data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /surveys/{surveyId}/start:
+    patch:
+      tags:
+        - survey
+      description: Start a survey
+      parameters:
+        - in: path
+          name: surveyId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully started survey
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+        '404':
+          description: Survey not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /surveys/{surveyId}/end:
+    patch:
+      tags:
+        - survey
+      description: End a survey
+      parameters:
+        - in: path
+          name: surveyId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully ended survey
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  answers:
+                    $ref: '#/components/schemas/SurveyResults'
+        '404':
+          description: Survey not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /surveys/{surveyId}/answer:
+    post:
+      tags:
+        - survey
+      description: Answer a survey
+      parameters:
+        - in: path
+          name: surveyId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Answer to submit
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SurveyAnswer'
+        required: true
+      responses:
+        '200':
+          description: Successfully answered survey
+        '404':
+          description: Survey not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid answer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /surveys/{surveyId}/results:
+    get:
+      tags:
+        - survey
+      description: Get the results of a survey
+      parameters:
+        - in: path
+          name: surveyId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully retrieved survey results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SurveyResults'
+        '404':
+          description: Survey not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /votes:
+    post:
+      tags:
+        - vote
+      description: Create a new vote
+      requestBody:
+        description: Informations about the new vote
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - vote
+              properties:
+                vote:
+                  $ref: '#/components/schemas/NewVote'
+                meetingId:
+                  description: Id of the meeting if the vote is linked to a meeting
+                  type: string
+        required: true
+      responses:
+        '200':
+          description: Successfully created vote
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vote'
+        '422':
+          description: Invalid vote data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    get:
+      tags:
+        - vote
+      description: Get all votes
+      responses:
+        '200':
+          description: Successfully retrieved votes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Vote'
+  /votes/{voteId}:
+    get:
+      tags:
+        - vote
+      description: Get infos of an existing vote
+      parameters:
+        - in: path
+          name: voteId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully retrieved vote
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vote'
+        '404':
+          description: Vote not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - vote
+      description: Delete an existing vote
+      parameters:
+        - in: path
+          name: voteId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully deleted vote
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+        '404':
+          description: Vote not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    patch:
+      tags:
+        - vote
+      description: Change infos of an existing vote
+      parameters:
+        - in: path
+          name: voteId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Informations to update
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - vote
+              properties:
+                vote:
+                  $ref: '#/components/schemas/PartialVote'
+      responses:
+        '200':
+          description: Successfully updated vote
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vote'
+        '404':
+          description: Vote not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid vote data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /votes/{voteId}/start:
+    patch:
+      tags:
+        - vote
+      description: Start a vote
+      parameters:
+        - in: path
+          name: voteId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully started vote
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vote'
+        '404':
+          description: Vote not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /votes/{voteId}/end:
+    patch:
+      tags:
+        - vote
+      description: End a vote
+      parameters:
+        - in: path
+          name: voteId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully ended vote
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  answers:
+                    $ref: '#/components/schemas/VoteResults'
+                  isValid:
+                    type: boolean
+        '404':
+          description: Vote not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /votes/{voteId}/results:
+    get:
+      tags:
+        - vote
+      description: Get the results of the current ballot of a vote
+      parameters:
+        - in: path
+          name: voteId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully retrieved vote results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VoteResults'
+        '400':
+          description: Vote not ended
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Vote not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /votes/{voteId}/ballot:
+    post:
+      tags:
+        - vote
+      description: Start a new ballot for a vote
+      parameters:
+        - in: path
+          name: voteId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Question for this ballot
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewPollQuestion'
+      responses:
+        '200':
+          description: Successfully created ballot
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+        '404':
+          description: Vote not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /votes/{voteId}/answer:
+    post:
+      tags:
+        - vote
+      description: Answer a vote in the current ballot
+      parameters:
+        - in: path
+          name: voteId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Answer to submit
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VoteAnswer'
+        required: true
+      responses:
+        '200':
+          description: Successfully answered vote
+        '404':
+          description: Vote not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid answer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /votes/{voteId}/ballots:
+    get:
+      tags:
+        - vote
+      description: Get all ballots of a vote
+      parameters:
+        - in: path
+          name: voteId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully retrieved ballots
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ballots:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/VoteResults'
+        '404':
+          description: Vote not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /meetings:
+    post:
+      tags:
+        - meeting
+      description: Create a new meeting
+      requestBody:
+        description: Informations about the new meeting
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewMeeting'
+
+        required: true
+      responses:
+        '200':
+          description: Successfully created meeting
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+        '422':
+          description: Invalid meeting data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    get:
+      tags:
+        - meeting
+      description: Get all meetings
+      parameters:
+        - in: query
+          name: startTime
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: endTime
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Successfully retrieved meetings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Meeting'
+  /meetings/{meetingId}:
+    get:
+      tags:
+        - meeting
+      description: Get infos of an existing meeting
+      parameters:
+        - in: path
+          name: meetingId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully retrieved meeting
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Meeting'
+        '404':
+          description: Meeting not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - meeting
+      description: Delete an existing meeting
+      parameters:
+        - in: path
+          name: meetingId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully deleted meeting
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+        '404':
+          description: Meeting not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    patch:
+      tags:
+        - meeting
+      description: Change infos of an existing meeting
+      parameters:
+        - in: path
+          name: meetingId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Informations to update
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - meeting
+              properties:
+                meeting:
+                  $ref: '#/components/schemas/PartialMeeting'
+      responses:
+        '200':
+          description: Successfully updated meeting
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Meeting'
+        '404':
+          description: Meeting not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid meeting data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /meetings/{meetingId}/votes:
+    get:
+      tags:
+        - meeting
+      description: Get all votes of a meeting
+      parameters:
+        - in: path
+          name: meetingId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully retrieved votes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Vote'
+        '404':
+          description: Meeting not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /meetings/{meetingId}/members:
+    get:
+      tags:
+        - meeting
+      description: Get all members of a meeting
+      parameters:
+        - in: path
+          name: meetingId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully retrieved members
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '404':
+          description: Meeting not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      tags:
+        - meeting
+      description: Register a user to a meeting
+      parameters:
+        - in: path
+          name: meetingId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Id of the user to register
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - userId
+              properties:
+                userId:
+                  type: string
+      responses:
+        '200':
+          description: Successfully registered to meeting
+        '404':
+          description: Meeting or user not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /meetings/{meetingId}/members/{userId}:
+    delete:
+      tags:
+        - meeting
+      description: Unregister from a meeting
+      parameters:
+        - in: path
+          name: meetingId
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully unregistered from meeting
+        '404':
+          description: Meeting or user not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /meetings/{meetingId}/start:
+    patch:
+      tags:
+        - meeting
+      description: Start a meeting
+      parameters:
+        - in: path
+          name: meetingId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully started meeting
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  presenceCode:
+                    type: string
+        '404':
+          description: Meeting not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /meetings/{meetingId}/answer-present:
+    post:
+      tags:
+        - meeting
+      description: Answer the presence code of a meeting
+      parameters:
+        - in: path
+          name: meetingId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Presence code to submit
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - presenceCode
+              properties:
+                presenceCode:
+                  type: string
+        required: true
+      responses:
+        '200':
+          description: Successfully answered presence code
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+        '404':
+          description: Meeting not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid presence code
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /meetings/{meetingId}/end:
+    patch:
+      tags:
+        - meeting
+      description: End a meeting
+      parameters:
+        - in: path
+          name: meetingId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Informations to end the meeting
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - summary
+              properties:
+                summary: 
+                  type: string
+      responses:
+        '200':
+          description: Successfully ended meeting
+        '404':
+          description: Meeting not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /contributions/settings:
+    patch:
+      tags:
+        - contribution
+      description: Change the settings of the contribution
+      requestBody:
+        description: Informations to update
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartialContributionSettings'
+      responses:
+        '200':
+          description: Successfully updated contribution settings
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  contributionSettings:
+                    $ref: '#/components/schemas/ContributionSettings'
+        '422':
+          description: Invalid contribution data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /contributions/payments:
+    post:
+      tags:
+        - contribution
+      description: Pay my contribution
+      requestBody:
+        description: Informations about the payment
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewPayment'
+        required: true
+      responses:
+        '200':
+          description: Successfully made payment
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+        '401':
+          description: Payment refused
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid payment data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /contributions/payments/late-users:
+    get:
+      tags:
+        - contribution
+      description: Get the list of all members who are late for their contribution, and how much they owe
+      responses:
+        '200':
+          description: Retrieved list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    user:
+                      $ref: '#/components/schemas/User'
+                    amount:
+                      type: number
+  /contributions/payments/late-users/send-reminder:
+    post:
+      tags:
+        - contribution
+      description: Send a reminder to all late users
+      responses:
+        '200':
+          description: Successfully sent reminder
+  /contributions/payments/late-users/{userId}/send-reminder:
+        post:
+          parameters:
+            - in: path
+              name: userId
+              required: true
+              schema:
+                type: string
+          tags:
+            - contribution
+          description: Send a reminder to one late user
+          responses:
+            '200':
+              description: Successfully sent reminder
+  /donations:
+    post:
+      tags:
+        - donation
+      description: Make a donation
+      requestBody:
+        description: Informations about the donation
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewPayment'
+        required: true
+      responses:
+        '200':
+          description: Successfully made donation
+        '401':
+          description: Payment refused
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid donation data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    get:
+      tags:
+        - donation
+      description: Get all donations
+      responses:
+        '200':
+          description: Successfully retrieved donations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Payment'
+  /donations/me:
+    get:
+      tags:
+        - donation
+      description: Get all donations I made
+      responses:
+        '200':
+          description: Successfully retrieved donations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Payment'
+  /events:
+    post:
+      tags:
+        - event
+      description: Create a new event
+      requestBody:
+        description: Informations about the new event
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewEvent'
+        required: true
+      responses:
+        '200':
+          description: Successfully created event
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+        '422':
+          description: Invalid event data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    get:
+      tags:
+        - event
+      description: Get all events
+      responses:
+        '200':
+          description: Successfully retrieved events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Event'
+  /events/me:
+    get:
+      tags:
+        - event
+      description: Get all events I am registered to
+      responses:
+        '200':
+          description: Successfully retrieved events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Event'
+  /events/{eventId}:
+    get:
+      tags:
+        - event
+      description: Get infos of an existing event
+      parameters:
+        - in: path
+          name: eventId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully retrieved event
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        '404':
+          description: Event not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - event
+      description: Delete an existing event
+      parameters:
+        - in: path
+          name: eventId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully deleted event
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+        '404':
+          description: Event not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    patch:
+      tags:
+        - event
+      description: Change infos of an existing event
+      parameters:
+        - in: path
+          name: eventId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Informations to update
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - event
+              properties:
+                event:
+                  $ref: '#/components/schemas/PartialEvent'
+      responses:
+        '200':
+          description: Successfully updated event
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        '404':
+          description: Event not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid event data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'                
+  /events/{eventId}/participants:
+    get:
+      tags:
+        - event
+      description: Get all participants of an event
+      parameters:
+        - in: path
+          name: eventId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully retrieved participants
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '404':
+          description: Event not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      tags:
+        - event
+      description: Register a user to an event
+      parameters:
+        - in: path
+          name: eventId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Id of the user to register
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - userId
+              properties:
+                userId:
+                  type: string
+      responses:
+        '200':
+          description: Successfully registered to event
+        '404':
+          description: Event or user not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /events/{eventId}/participants/{userId}:
+    delete:
+      tags:
+        - event
+      description: Unregister from an event
+      parameters:
+        - in: path
+          name: eventId
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully unregistered from event
+        '404':
+          description: Event or user not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /events/{eventId}/presence:
+    post:
+      tags:
+        - event
+      description: Declare the presence of users to an event
+      parameters:
+        - in: path
+          name: eventId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Ids of all users who are present
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+      responses:
+        '200':
+          description: Successfully declared presence
+        '404':
+          description: Event not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /chat/start-session:
+    post:
+      tags:
+        - chat
+      description: Start a chat session
+      responses:
+        '200':
+          description: Successfully started chat session
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sessionId:
+                    type: string
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /projects:
+    post:
+      tags:
+        - project
+      description: Create a new project
+      requestBody:
+        description: Informations about the new project
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewProject'
+        required: true
+      responses:
+        '200':
+          description: Successfully created project
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '422':
+          description: Invalid project data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    get:
+      tags:
+        - project
+      description: Get all projects
+      responses:
+        '200':
+          description: Successfully retrieved projects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Project'
+  /projects/me:
+    get:
+      tags:
+        - project
+      description: Get all projects I am part of
+      responses:
+        '200':
+          description: Successfully retrieved projects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Project'
+  /projects/{projectId}:
+    get:
+      tags:
+        - project
+      description: Get infos of an existing project
+      parameters:
+        - in: path
+          name: projectId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully retrieved project
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '404':
+          description: Project not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - project
+      description: Delete an existing project
+      parameters:
+        - in: path
+          name: projectId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully deleted project
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '404':
+          description: Project not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    patch:
+      tags:
+        - project
+      description: Change infos of an existing project
+      parameters:
+        - in: path
+          name: projectId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Informations to update
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - project
+              properties:
+                project:
+                  $ref: '#/components/schemas/PartialProject'
+      responses:
+        '200':
+          description: Successfully updated project
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '404':
+          description: Project not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid project data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /projects/{projectId}/tasks:
+    get:
+      tags:
+        - project
+      description: Get all tasks of a project
+      parameters:
+        - in: path
+          name: projectId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully retrieved tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+        '404':
+          description: Project not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      tags:
+        - project
+      description: Create a new task
+      parameters:
+        - in: path
+          name: projectId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Informations about the new task
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewTask'
+        required: true
+      responses:
+        '200':
+          description: Successfully created task
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '422':
+          description: Invalid task data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /project/{projectId}/tasks/me:
+    get:
+      tags:
+        - project
+        - task
+      description: Get all tasks of a project I am assigned to
+      parameters:
+        - in: path
+          name: projectId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully retrieved tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+        '404':
+          description: Project not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /tasks/{taskId}:
+    get:
+      tags:
+        - project
+        - task
+      description: Get infos of an existing task
+      parameters:
+        - in: path
+          name: taskId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully retrieved task
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '404':
+          description: Task not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - project
+        - task
+      description: Delete an existing task
+      parameters:
+        - in: path
+          name: taskId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully deleted task
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '404':
+          description: Task not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    patch:
+      tags:
+        - project
+        - task
+      description: Change infos of an existing task
+      parameters:
+        - in: path
+          name: taskId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Informations to update
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - task
+              properties:
+                task:
+                  $ref: '#/components/schemas/PartialTask'
+      responses:
+        '200':
+          description: Successfully updated task
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '404':
+          description: Task not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Invalid task data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /tasks/me:
+    get:
+      tags:
+        - project
+        - task
+      description: Get all tasks I am assigned to
+      responses:
+        '200':
+          description: Successfully retrieved tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+  /feed:
+    get:
+      tags:
+        - feed
+      description: Get the feed
+      parameters:
+        - in: query
+          name: kind
+          schema:
+            type: string
+        - in: query
+          name: pageSize
+          schema:
+            type: integer
+          description: Number of items to retrieve
+        - in: query
+          name: page
+          schema:
+            type: integer
+          description: Page number
+      responses:
+        '200':
+          description: Successfully retrieved feed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FeedItem'
+  /settings/theme:
+    put:
+      tags:
+        - settings
+      description: Change the theme
+      requestBody:
+        description: Informations to update
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - theme
+              properties:
+                theme:
+                  $ref: '#/components/schemas/Theme'
+      responses:
+        '200':
+          description: Successfully updated theme
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  theme:
+                    $ref: '#/components/schemas/Theme'
+        '422':
+          description: Invalid theme data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    get:
+      tags:
+        - settings
+      description: Get the current theme
+      responses:
+        '200':
+          description: Successfully retrieved theme
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  theme:
+                    $ref: '#/components/schemas/Theme'
+  /settings/chatbot-conf:
+    put:
+      tags:
+        - settings
+      description: Change the chatbot configuration
+      requestBody:
+        description: Informations to update
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - chatbotConf
+              properties:
+                chatbotConf:
+                  $ref: '#/components/schemas/ChatbotConf'
+      responses:
+        '200':
+          description: Successfully updated chatbot configuration
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  chatbotConf:
+                    $ref: '#/components/schemas/ChatbotConf'
+        '422':
+          description: Invalid chatbot configuration data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    get:
+      tags:
+        - settings
+      description: Get the current chatbot configuration
+      responses:
+        '200':
+          description: Successfully retrieved chatbot configuration
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  chatbotConf:
+                    $ref: '#/components/schemas/ChatbotConf'
+components:
+  schemas:
+    Login:
+      type: object
+      required:
+        - email
+        - password
+        - association
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+        associationId:
+          type: string
+    NewUser:
+      type: object
+      required:
+        - email
+        - password
+        - fullName
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+        fullName:
+          type: string
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        fullName:
+          type: string
+        role:
+          type: string
+          enum: [admin, internal, external]
+    PartialUser:
+      type: object
+      properties:
+        email:
+          type: string
+        fullName:
+          type: string
+        role:
+          type: string
+          enum: [admin, internal, external]
+    NewAssociation:
+      type: object
+      required:
+        - name
+        - description
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        logo:
+          type: string
+          format: base64
+    PartialAssociation:
+      type: object
+      properties:
+        name:
+          type: string
+        logo:
+          type: string
+        description:
+          type: string
+    Association:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        logo:
+          type: string
+        description:
+          type: string
+    BankInfo:
+      type: object
+      required:
+        - name
+        - rib
+      properties:
+        name:
+          type: string
+        rib:
+          type: string
+    NewSurvey:
+      type: object
+      required:
+        - title
+        - description
+        - questions
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/NewPollQuestion'
+    Survey:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/PollQuestion'
+    PartialSurvey:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/NewPollQuestion'
+    SurveyResults:
+      type: object
+      properties:
+        questionResults:
+          type: array
+          items:
+            type: number # Number of answers for the option at this index
+    SurveyAnswer:
+      type: object
+      required:
+        - answers
+      properties:
+        answers:
+          type: array
+          items:
+            type: array # List of index of the selected option(s) for the question at this index
+            items:
+              type: number 
+    NewVote:
+      type: object
+      required:
+        - title
+        - description
+        - question
+        - minPercentAnswers
+        - acceptance
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        minPercentAnswers:
+          type: number
+        acceptance:
+          type: string
+          enum: [majority, wideMajority, unanimity]
+        question:
+          $ref: '#/components/schemas/NewPollQuestion'
+    Vote:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        minPercentAnswers:
+          type: number
+        acceptance:
+          type: string
+          enum: [majority, wideMajority, unanimity]
+        question:
+          $ref: '#/components/schemas/PollQuestion'
+    PartialVote:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        minPercentAnswers:
+          type: number
+        acceptance:
+          type: string
+          enum: [majority, wideMajority, unanimity]
+        question:
+          $ref: '#/components/schemas/NewPollQuestion'
+    VoteAnswer:
+      type: object
+      required:
+        - answers
+      properties:
+        answers:
+          type: array
+          items:
+            type: number
+    VoteResults:
+      type: object
+      required:
+        - answers
+      properties:
+        votes:
+          type: array # All answers for the question
+          items:
+            $ref: '#/components/schemas/VoteAnswer'
+    NewPollQuestion:
+      type: object
+      required:
+        - prompt
+        - type
+        - options
+      properties:
+        prompt:
+          type: string
+        type:
+          type: string
+          enum: [single, multiple]
+        options:
+          type: array
+          items:
+            type: string
+    PollQuestion:
+      type: object
+      properties:
+        prompt:
+          type: string
+        type:
+          type: string
+          enum: [single, multiple]
+        options:
+          type: array
+          items:
+            type: string
+    NewMeeting:
+      type: object
+      required:
+        - title
+        - startTime
+        - endTime
+        - visibility
+        - agendum
+      properties:
+        title:
+          type: string
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        visibility:
+          type: string
+          enum: [public, private]
+        agendum:
+          type: string
+    Meeting:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        visibility:
+          type: string
+          enum: [public, private]
+        agendum:
+          type: string
+        summary:
+          type: string
+    PartialMeeting:
+      type: object
+      properties:
+        title:
+          type: string
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        visibility:
+          type: string
+          enum: [public, private]
+        agendum:
+          type: string
+        summary:
+          type: string
+    PartialContributionSettings:
+      type: object
+      properties:
+        contributionInterval:
+          type: number
+          description: Interval in days between two contributions
+        contributionPrice:
+          type: number
+    ContributionSettings:
+      type: object
+      properties:
+        contributionInterval:
+          type: number
+        contributionPrice:
+          type: number
+    NewPayment:
+      type: object
+      required:
+        - amount
+      properties:
+        amount:
+          type: number
+    Payment:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        amount:
+          type: number
+        time:
+          type: string
+          format: date-time
+    NewEvent:
+      type: object
+      required:
+        - title
+        - description
+        - startTime
+        - endTime
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+    Event:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        summary:
+          type: string
+    PartialEvent:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        summary:
+          type: string
+    NewProject:
+      type: object
+      required:
+        - name
+        - description
+        - startTime
+        - endTime
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+    Project:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+    PartialProject:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+    NewTask:
+      type: object
+      required:
+        - title
+        - description
+        - status
+        - deadline
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [todo, inProgress, done]
+        deadline:
+          type: string
+          format: date-time
+    Task:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [todo, inProgress, done]
+        deadline:
+          type: string
+          format: date-time
+        responsible:
+          $ref: '#/components/schemas/User'
+    PartialTask:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [todo, inProgress, done]
+        deadline:
+          type: string
+          format: date-time
+        responsibleUserId:
+          type: string
+    FeedItem:
+      type: object
+      properties:
+        id:
+          type: string
+        kind:
+          type: string
+          enum: [meeting, event, survey, vote]
+        title:
+          type: string
+        content:
+          type: string
+    Theme:
+      type: object
+      properties:
+        highlightColor:
+          type: string
+          format: color
+        fontName:
+          type: string
+    ChatbotConf:
+      type: object
+      properties:
+        token:
+          type: string
+        instructions:
+          type: string
+    Error:
+      required:
+        - message
+      type: object
+      properties:
+        message:
+          type: string
