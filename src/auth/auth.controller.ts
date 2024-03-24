@@ -6,7 +6,7 @@ import { User } from 'src/users/users.entity';
 import { z } from 'zod';
 
 const ResetPasswordSchema = z.object({
-  resetPasswordCode: z.string(),
+  passwordResetCode: z.string(),
   newPassword: z.string().min(8),
 });
 
@@ -32,7 +32,7 @@ export class AuthController {
     const validBody = ResetPasswordSchema.parse(body);
     const token = await this.authService.resetPassword({
       newPassword: validBody.newPassword,
-      resetPasswordCode: validBody.resetPasswordCode,
+      passwordResetCode: validBody.passwordResetCode,
     });
 
     return { token };
