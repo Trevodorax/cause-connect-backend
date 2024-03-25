@@ -1,8 +1,10 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { AssociationsService } from './associations.service';
 import { z } from 'zod';
 import { Association } from './associations.entity';
 import { Public } from 'src/auth/decorators/public.decorator';
+import { Roles } from 'src/auth/rules.decorator';
+import { UserRole } from 'src/users/users.entity';
 
 const NewAssociationSchema = z.object({
   admin: z.object({
@@ -27,5 +29,23 @@ export class AssociationsController {
   ): Promise<Association> {
     const validDto = NewAssociationSchema.parse(body);
     return this.associationsService.createAssociationWithAdmin(validDto);
+  }
+
+  @Roles(UserRole.ADMIN)
+  @Get('admin')
+  async admin() {
+    return 'For admin';
+  }
+
+  @Roles(UserRole.INTERNAL)
+  @Get('internal')
+  async internal() {
+    return 'For internal';
+  }
+
+  @Roles(UserRole.EXTERNAL, UserRole.ADMIN)
+  @Get('external-admin')
+  async external() {
+    return 'For external or admin';
   }
 }

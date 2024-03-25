@@ -32,12 +32,12 @@ export class UsersService {
       where: { passwordResetCode: dto.passwordResetCode },
       relations: ['association'],
     });
-    if (!user || user.passwordResetCode === null) {
+    if (!user || !user.passwordResetCode || user.passwordResetCode === '') {
       throw new UnauthorizedException('Wrong reset password code');
     }
 
     user.passwordHash = await this.passwordToHash(dto.newPassword);
-    user.passwordResetCode = undefined;
+    user.passwordResetCode = '';
 
     await this.userRepository.save(user);
 

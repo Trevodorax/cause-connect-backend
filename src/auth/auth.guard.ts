@@ -10,6 +10,8 @@ import { Request } from 'express';
 import { IS_PUBLIC_KEY } from './decorators/public.decorator';
 import { ConfigService } from '@nestjs/config';
 import { UsersService } from 'src/users/users.service';
+import { UserRole } from 'src/users/users.entity';
+import { ROLES_KEY } from './rules.decorator';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -29,6 +31,11 @@ export class AuthGuard implements CanActivate {
       return true;
     }
 
+    const authorizedRoles = this.reflector.getAllAndOverride<UserRole[]>(
+      ROLES_KEY,
+      [context.getHandler(), context.getClass()],
+    );
+
     const request = context.switchToHttp().getRequest();
     const token = this.extractTokenFromHeader(request);
     if (!token) {
@@ -40,6 +47,16 @@ export class AuthGuard implements CanActivate {
       });
 
       const user = await this.usersService.findOneById(payload.id);
+      if (!user) {
+        throw new UnauthorizedException();
+      }
+
+      if (authorizedRoles?.length > 0 && !authorizedRoles.includes(user.role)) {
+        throw new UnauthorizedException(
+          'You do not have the right role to access this route.',
+        );
+      }
+
       request['user'] = user;
     } catch {
       throw new UnauthorizedException();
