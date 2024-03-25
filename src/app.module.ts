@@ -8,6 +8,9 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmConfigService } from './config/database.config';
 import { AssociationsModule } from './associations/associations.module';
 import { EmailModule } from './email/email.module';
+import { ProjectModule } from './project/project.module';
+import { ProjectsModule } from './projects/projects.module';
+import { TasksModule } from './tasks/tasks.module';
 
 @Module({
   imports: [
@@ -23,6 +26,9 @@ import { EmailModule } from './email/email.module';
     AuthModule,
     AssociationsModule,
     EmailModule,
+    ProjectModule,
+    ProjectsModule,
+    TasksModule,
   ],
   providers: [AppService, AuthService],
 })
