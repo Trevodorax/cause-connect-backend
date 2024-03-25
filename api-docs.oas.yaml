@@ -2167,10 +2167,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  /project/{projectId}/tasks/me:
+  /projects/{projectId}/tasks/me:
     get:
       tags:
-        - project
         - task
       description: Get all tasks of a project I am assigned to
       parameters:
@@ -2197,7 +2196,6 @@ paths:
   /tasks/{taskId}:
     get:
       tags:
-        - project
         - task
       description: Get infos of an existing task
       parameters:
@@ -2221,7 +2219,6 @@ paths:
                 $ref: '#/components/schemas/Error'
     delete:
       tags:
-        - project
         - task
       description: Delete an existing task
       parameters:
@@ -2245,7 +2242,6 @@ paths:
                 $ref: '#/components/schemas/Error'
     patch:
       tags:
-        - project
         - task
       description: Change infos of an existing task
       parameters:
@@ -2287,7 +2283,6 @@ paths:
   /tasks/me:
     get:
       tags:
-        - project
         - task
       description: Get all tasks I am assigned to
       responses:
@@ -2865,7 +2860,7 @@ components:
           type: string
         status:
           type: string
-          enum: [todo, inProgress, done]
+          enum: [todo, in_progress, done]
         deadline:
           type: string
           format: date-time
@@ -2880,11 +2875,11 @@ components:
           type: string
         status:
           type: string
-          enum: [todo, inProgress, done]
+          enum: [todo, in_progress, done]
         deadline:
           type: string
           format: date-time
-        responsible:
+        responsibleUser:
           $ref: '#/components/schemas/User'
     PartialTask:
       type: object
@@ -2895,11 +2890,13 @@ components:
           type: string
         status:
           type: string
-          enum: [todo, inProgress, done]
+          enum: [todo, in_progress, done]
         deadline:
           type: string
           format: date-time
         responsibleUserId:
+          type: string
+        projectId:
           type: string
     FeedItem:
       type: object

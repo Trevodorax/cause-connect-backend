@@ -1,5 +1,12 @@
 import { Association } from 'src/associations/associations.entity';
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
+import { Task } from 'src/tasks/tasks.entity';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  ManyToOne,
+  OneToMany,
+} from 'typeorm';
 
 export enum UserRole {
   SUPER_ADMIN = 'super_admin',
@@ -30,4 +37,7 @@ export class User {
 
   @ManyToOne(() => Association, (association) => association.members)
   association: Association;
+
+  @OneToMany(() => Task, (task) => task.user)
+  tasks: Task[];
 }
