@@ -175,6 +175,7 @@ export class ProjectsController {
       description: task.description,
       status: task.status,
       deadline: task.deadline,
+      responsibleUser: task.user,
     }));
   }
 
@@ -204,6 +205,7 @@ export class ProjectsController {
       description: task.description,
       status: task.status,
       deadline: task.deadline,
+      responsibleUser: task.user,
     };
   }
 
@@ -226,6 +228,7 @@ export class ProjectsController {
       description: task.description,
       status: task.status,
       deadline: task.deadline,
+      responsibleUser: task.user,
     }));
   }
 }

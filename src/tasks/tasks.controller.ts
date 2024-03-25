@@ -5,6 +5,7 @@ import { TaskStatus } from './tasks.entity';
 import { Roles } from 'src/auth/rules.decorator';
 import { User, UserRole } from 'src/users/users.entity';
 import { GetUser } from 'src/auth/decorators/user.decorator';
+import { UserResponse } from 'src/users/users.controller';
 
 const PartialTaskSchema = z.object({
   title: z.string().optional(),
@@ -23,6 +24,7 @@ export interface TaskResponse {
   description: string;
   status: string;
   deadline: Date;
+  responsibleUser: UserResponse;
 }
 
 @Controller('tasks')
@@ -39,6 +41,7 @@ export class TasksController {
       description: task.description,
       status: task.status,
       deadline: task.deadline,
+      responsibleUser: task.user,
     };
   }
 
@@ -47,7 +50,14 @@ export class TasksController {
   @Delete(':id')
   async deleteTask(@Param('id') id: string): Promise<TaskResponse> {
     const deletedTask = await this.tasksService.deleteTaskById(id);
-    return deletedTask;
+    return {
+      id: deletedTask.id,
+      title: deletedTask.title,
+      description: deletedTask.description,
+      status: deletedTask.status,
+      deadline: deletedTask.deadline,
+      responsibleUser: deletedTask.user,
+    };
   }
 
   // update task by id
@@ -70,6 +80,7 @@ export class TasksController {
       description: task.description,
       status: task.status,
       deadline: task.deadline,
+      responsibleUser: task.user,
     };
   }
 
@@ -84,6 +95,7 @@ export class TasksController {
       description: task.description,
       status: task.status,
       deadline: task.deadline,
+      responsibleUser: task.user,
     }));
   }
 }

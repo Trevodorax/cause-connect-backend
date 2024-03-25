@@ -20,7 +20,7 @@ const CreateUserSchema = z.object({
   role: z.enum([UserRole.ADMIN, UserRole.INTERNAL, UserRole.EXTERNAL]),
 });
 
-interface UserResponse {
+export interface UserResponse {
   id: string;
   email: string;
   fullName: string;
