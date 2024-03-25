@@ -1,4 +1,6 @@
 import {
+  forwardRef,
+  Inject,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -33,6 +35,7 @@ export class ProjectsService {
     @InjectRepository(Project)
     private projectsRepository: Repository<Project>,
     private associationsService: AssociationsService,
+    @Inject(forwardRef(() => TasksService))
     private tasksService: TasksService,
   ) {}
   async createProject(newProject: NewProjectDto): Promise<Project> {

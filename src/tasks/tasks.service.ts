@@ -1,4 +1,6 @@
 import {
+  forwardRef,
+  Inject,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -32,6 +34,7 @@ export class TasksService {
   constructor(
     @InjectRepository(Task)
     private tasksRepository: Repository<Task>,
+    @Inject(forwardRef(() => ProjectsService))
     private projectsService: ProjectsService,
     private usersService: UsersService,
   ) {}
