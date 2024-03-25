@@ -64,6 +64,7 @@ export class AssociationsController {
     return this.associationsService.deleteAssociation(id);
   }
 
+  @Public()
   @Get(':id')
   async getAssociation(id: string): Promise<AssociationResponse> {
     return this.associationsService.getAssociation(id);

@@ -10,7 +10,7 @@ export class Association {
   @Column()
   name: string;
 
-  @Column()
+  @Column({ default: '' })
   logo: string;
 
   @Column()
