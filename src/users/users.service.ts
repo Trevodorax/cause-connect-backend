@@ -32,12 +32,12 @@ export class UsersService {
       where: { passwordResetCode: dto.passwordResetCode },
       relations: ['association'],
     });
-    if (!user || user.passwordResetCode === null) {
+    if (!user || !user.passwordResetCode || user.passwordResetCode === '') {
       throw new UnauthorizedException('Wrong reset password code');
     }
 
     user.passwordHash = await this.passwordToHash(dto.newPassword);
-    user.passwordResetCode = undefined;
+    user.passwordResetCode = '';
 
     await this.userRepository.save(user);
 
@@ -51,11 +51,20 @@ export class UsersService {
   }
 
   async findOneById(id: string): Promise<User | null> {
-    return this.userRepository.findOneBy({ id });
+    return this.userRepository.findOne({
+      where: { id: id },
+      relations: ['association'],
+    });
   }
 
-  async remove(id: string): Promise<void> {
-    await this.userRepository.delete(id);
+  async deleteUser(id: string): Promise<User> {
+    const user = await this.findOneById(id);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const deletedUser = await this.userRepository.remove(user);
+    return deletedUser;
   }
 
   async createUser(user: NewUserDto): Promise<User | null> {
@@ -76,17 +85,30 @@ export class UsersService {
       throw new NotFoundException('Association not found');
     }
 
-    const code = uuidv4();
-
     // insert user into the database
     const result = await this.userRepository.insert({
       email: user.email,
       fullName: user.fullName,
       role: user.role,
       association: association,
-      passwordResetCode: code,
     });
     const userId = result.generatedMaps[0].id;
+
+    this.sendPasswordResetEmail(userId);
+
+    // return the newly created user
+    return this.userRepository.findOneBy({ id: userId });
+  }
+
+  async sendPasswordResetEmail(id: string) {
+    const user = await this.findOneById(id);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const code = uuidv4();
+    user.passwordResetCode = code;
+    await this.userRepository.save(user);
 
     this.emailService.sendPasswordResetEmail({
       email: user.email,
@@ -94,8 +116,7 @@ export class UsersService {
       passwordResetCode: code,
     });
 
-    // return the newly created user
-    return this.userRepository.findOneBy({ id: userId });
+    return user.email;
   }
 
   async edit(id: string, data: PartialUserDto): Promise<User> {

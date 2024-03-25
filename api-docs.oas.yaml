@@ -178,7 +178,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  /associations/{associationId}/bank-info:
+  /associations/{associationId}/bank-info (later): 
     post:
       tags:
         - association
@@ -265,7 +265,15 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/NewUser'
+              type: object
+              properties:
+                email:
+                  type: string
+                fullName:
+                  type: string
+                role:
+                  type: string
+                  enum: [admin, internal, external]
         required: true
       responses:
         '200':
@@ -2431,12 +2439,9 @@ components:
       type: object
       required:
         - email
-        - password
         - fullName
       properties:
         email:
-          type: string
-        password:
           type: string
         fullName:
           type: string

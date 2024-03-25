@@ -1,8 +1,6 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Post } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Public } from './decorators/public.decorator';
-import { GetUser } from './decorators/user.decorator';
-import { User } from 'src/users/users.entity';
 import { z } from 'zod';
 
 const ResetPasswordSchema = z.object({
@@ -52,10 +50,5 @@ export class AuthController {
     });
 
     return { token };
-  }
-
-  @Get('me')
-  me(@GetUser() user: User): User {
-    return user;
   }
 }

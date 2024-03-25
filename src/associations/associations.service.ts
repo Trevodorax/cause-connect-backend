@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { Association } from './associations.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -17,6 +21,12 @@ interface NewAssociationWithAdminDto {
     fullName: string;
   };
   association: NewAssociationDto;
+}
+
+interface PartialAssociationDto {
+  name?: string;
+  logo?: string;
+  description?: string;
 }
 
 @Injectable()
@@ -61,5 +71,59 @@ export class AssociationsService {
 
   async findById(id: string): Promise<Association | null> {
     return this.associationRepository.findOneBy({ id });
+  }
+
+  async getAllAssociations(): Promise<Association[]> {
+    return this.associationRepository.find();
+  }
+
+  async deleteAssociation(id: string): Promise<Association> {
+    const association = await this.associationRepository.findOneBy({ id });
+    if (!association) {
+      throw new NotFoundException('Association not found');
+    }
+
+    await this.associationRepository.delete(id);
+
+    return association;
+  }
+
+  async getAssociation(id: string): Promise<Association> {
+    const association = await this.associationRepository.findOneBy({ id });
+    if (!association) {
+      throw new NotFoundException('Association not found');
+    }
+
+    return association;
+  }
+
+  async updateAssociation(
+    id: string,
+    association: PartialAssociationDto,
+  ): Promise<Association> {
+    // check association exists
+    const existingAssociation = await this.associationRepository.findOneBy({
+      id,
+    });
+    if (!existingAssociation) {
+      throw new NotFoundException('Association not found');
+    }
+
+    const result = await this.associationRepository.update(id, association);
+    if (!result.affected) {
+      throw new InternalServerErrorException('Failed to update association');
+    }
+
+    const modifiedAssociation = await this.associationRepository.findOneBy({
+      id,
+    });
+
+    if (!modifiedAssociation) {
+      throw new InternalServerErrorException(
+        'Failed to find modified association',
+      );
+    }
+
+    return modifiedAssociation;
   }
 }
