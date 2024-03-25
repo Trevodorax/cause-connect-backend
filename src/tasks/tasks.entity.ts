@@ -19,8 +19,8 @@ export class Task {
   @Column()
   description: string;
 
-  @Column()
-  status: Date;
+  @Column({ type: 'simple-enum', enum: TaskStatus })
+  status: TaskStatus;
 
   @Column()
   deadline: Date;

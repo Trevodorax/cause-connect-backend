@@ -1,3 +1,4 @@
+import { Project } from 'src/projects/projects.entity';
 import { User } from 'src/users/users.entity';
 import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
 
@@ -17,4 +18,7 @@ export class Association {
 
   @OneToMany(() => User, (user) => user.association)
   members: User[];
+
+  @OneToMany(() => Project, (project) => project.association)
+  projects: Project[];
 }
