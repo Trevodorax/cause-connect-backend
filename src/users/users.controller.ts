@@ -1,7 +1,125 @@
-import { Controller } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  InternalServerErrorException,
+  NotFoundException,
+  Param,
+  Post,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
+import { Roles } from 'src/auth/rules.decorator';
+import { UserRole } from './users.entity';
+import { GetUser } from 'src/auth/decorators/user.decorator';
+import { z } from 'zod';
+
+const CreateUserSchema = z.object({
+  email: z.string().email(),
+  fullName: z.string(),
+  role: z.enum([UserRole.ADMIN, UserRole.INTERNAL, UserRole.EXTERNAL]),
+});
+
+interface UserResponse {
+  id: string;
+  email: string;
+  fullName: string;
+  role: UserRole;
+}
+
+interface SendPasswordEmailResponse {
+  email: string;
+}
 
 @Controller('users')
 export class UsersController {
   constructor(private usersService: UsersService) {}
+
+  @Roles(UserRole.ADMIN)
+  @Post()
+  async createUser(
+    @GetUser('associationId') associationId: string,
+    @Body() body: z.infer<typeof CreateUserSchema>,
+  ): Promise<UserResponse> {
+    const validBody = CreateUserSchema.parse(body);
+    const user = await this.usersService.createUser({
+      associationId,
+      ...validBody,
+    });
+
+    if (!user) {
+      throw new InternalServerErrorException('Failed to create user');
+    }
+
+    return {
+      id: user.id,
+      email: user.email,
+      fullName: user.fullName,
+      role: user.role,
+    };
+  }
+
+  @Roles(UserRole.ADMIN)
+  @Get()
+  async getAllUsers(
+    @GetUser('associationId') associationId: string,
+  ): Promise<UserResponse[]> {
+    return (await this.usersService.findAllByAssociation(associationId)).map(
+      (user) => ({
+        id: user.id,
+        email: user.email,
+        fullName: user.fullName,
+        role: user.role,
+      }),
+    );
+  }
+
+  @Get('me')
+  me(@GetUser() user: UserResponse): UserResponse {
+    return {
+      id: user.id,
+      email: user.email,
+      fullName: user.fullName,
+      role: user.role,
+    };
+  }
+
+  @Roles(UserRole.ADMIN)
+  @Get(':id')
+  async getUser(@Param('id') id: string): Promise<UserResponse> {
+    const user = await this.usersService.findOneById(id);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return {
+      id: user.id,
+      email: user.email,
+      fullName: user.fullName,
+      role: user.role,
+    };
+  }
+
+  @Roles(UserRole.ADMIN)
+  @Delete(':id')
+  async deleteUser(@Param('id') id: string): Promise<UserResponse> {
+    const user = await this.usersService.deleteUser(id);
+
+    return {
+      id: id,
+      email: user.email,
+      fullName: user.fullName,
+      role: user.role,
+    };
+  }
+
+  @Roles(UserRole.ADMIN)
+  @Post(':id/send-password-email')
+  async sendPasswordEmail(
+    @Param('id') id: string,
+  ): Promise<SendPasswordEmailResponse> {
+    const email = await this.usersService.sendPasswordResetEmail(id);
+
+    return { email };
+  }
 }

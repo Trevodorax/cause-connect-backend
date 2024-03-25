@@ -19,6 +19,12 @@ interface NewAssociationWithAdminDto {
   association: NewAssociationDto;
 }
 
+interface PartialAssociationDto {
+  name?: string;
+  logo?: string;
+  description?: string;
+}
+
 @Injectable()
 export class AssociationsService {
   constructor(
@@ -61,5 +67,51 @@ export class AssociationsService {
 
   async findById(id: string): Promise<Association | null> {
     return this.associationRepository.findOneBy({ id });
+  }
+
+  async getAllAssociations(): Promise<Association[]> {
+    return this.associationRepository.find();
+  }
+
+  async deleteAssociation(id: string): Promise<Association> {
+    const association = await this.associationRepository.findOneBy({ id });
+    if (!association) {
+      throw new InternalServerErrorException('Association not found');
+    }
+
+    await this.associationRepository.delete(id);
+
+    return association;
+  }
+
+  async getAssociation(id: string): Promise<Association> {
+    const association = await this.associationRepository.findOneBy({ id });
+    if (!association) {
+      throw new InternalServerErrorException('Association not found');
+    }
+
+    return association;
+  }
+
+  async updateAssociation(
+    id: string,
+    association: PartialAssociationDto,
+  ): Promise<Association> {
+    const result = await this.associationRepository.update(id, association);
+    if (!result.affected) {
+      throw new InternalServerErrorException('Failed to update association');
+    }
+
+    const modifiedAssociation = await this.associationRepository.findOneBy({
+      id,
+    });
+
+    if (!modifiedAssociation) {
+      throw new InternalServerErrorException(
+        'Failed to find modified association',
+      );
+    }
+
+    return modifiedAssociation;
   }
 }

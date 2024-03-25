@@ -2,6 +2,7 @@ import { Association } from 'src/associations/associations.entity';
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
 
 export enum UserRole {
+  SUPER_ADMIN = 'super_admin',
   ADMIN = 'admin',
   INTERNAL = 'internal',
   EXTERNAL = 'external',
