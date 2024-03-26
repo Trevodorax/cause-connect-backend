@@ -60,13 +60,15 @@ export class AssociationsController {
 
   @Roles(UserRole.SUPER_ADMIN)
   @Delete(':id')
-  async deleteAssociation(id: string): Promise<AssociationResponse> {
+  async deleteAssociation(
+    @Param('id') id: string,
+  ): Promise<AssociationResponse> {
     return this.associationsService.deleteAssociation(id);
   }
 
   @Public()
   @Get(':id')
-  async getAssociation(id: string): Promise<AssociationResponse> {
+  async getAssociation(@Param('id') id: string): Promise<AssociationResponse> {
     return this.associationsService.getAssociation(id);
   }
 
