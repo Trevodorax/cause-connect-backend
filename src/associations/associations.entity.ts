@@ -1,6 +1,7 @@
 import { Project } from 'src/projects/projects.entity';
 import { Survey } from 'src/surveys/surveys.entity';
 import { User } from 'src/users/users.entity';
+import { Vote } from 'src/votes/entities/votes.entity';
 import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
 
 @Entity()
@@ -25,4 +26,7 @@ export class Association {
 
   @OneToMany(() => Survey, (survey) => survey.association)
   surveys: Survey[];
+
+  @OneToMany(() => Vote, (vote) => vote.association)
+  votes: Vote[];
 }
