@@ -51,7 +51,7 @@ export class AuthGuard implements CanActivate {
         throw new UnauthorizedException();
       }
 
-      if (authorizedRoles.length > 0 && !authorizedRoles.includes(user.role)) {
+      if (authorizedRoles?.length > 0 && !authorizedRoles.includes(user.role)) {
         throw new UnauthorizedException(
           'You do not have the right role to access this route.',
         );
