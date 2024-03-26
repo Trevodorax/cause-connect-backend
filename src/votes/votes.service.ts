@@ -53,7 +53,13 @@ interface AnswerVoteDto {
   optionIds: string[];
 }
 
-type VoteResults = QuestionAnswersCount[];
+type BallotResults = QuestionAnswersCount;
+
+export interface VoteWinningOption {
+  optionId: string;
+  isValid: boolean;
+  lastBallotResults: BallotResults;
+}
 
 @Injectable()
 export class VotesService {
@@ -186,30 +192,59 @@ export class VotesService {
     });
   }
 
-  /*
   // get the results of a vote
-  async getResults(voteId: string): Promise<VoteResults> {
+  async getCurrentBallotResults(voteId: string): Promise<BallotResults> {
     const vote = await this.voteRepository.findOne({
       where: { id: voteId },
-      relations: ['questions'],
     });
     if (!vote) {
       throw new NotFoundException('Vote not found');
     }
 
-    const answers = Promise.all(
-      vote.questions.map(async (question) => {
-        const answersCount = await this.pollQuestionService.getAnswersCount(
-          question.id,
-        );
+    const currentBallot = await this.getLastBallot(voteId, vote.currentBallot);
 
-        return answersCount;
-      }),
+    const answersCount = await this.pollQuestionService.getAnswersCount(
+      currentBallot.question.id,
     );
 
-    return answers;
+    return answersCount;
   }
-  */
+
+  async getWinningOption(voteId: string): Promise<VoteWinningOption> {
+    const vote = await this.findById(voteId);
+
+    const answersCount = await this.getCurrentBallotResults(voteId);
+
+    const totalVotesCount = answersCount.optionCounts.reduce(
+      (acc, currentOptionCount) => acc + currentOptionCount.count,
+      0,
+    );
+
+    const sortedOptions = answersCount.optionCounts.sort(
+      (optionCount) => optionCount.count,
+    );
+    const winningOption = sortedOptions[0];
+
+    // check
+    const minNbVotesPerAcceptanceCriteria: {
+      [key in VoteAcceptanceCriteria]: number;
+    } = {
+      [VoteAcceptanceCriteria.MAJORITY]: totalVotesCount / 2,
+      [VoteAcceptanceCriteria.TWO_THIRDS]: (totalVotesCount / 3) * 2,
+      [VoteAcceptanceCriteria.UNANIMITY]: totalVotesCount,
+    };
+    const isAcceptanceCriteriaMet =
+      winningOption.count >=
+      minNbVotesPerAcceptanceCriteria[vote.acceptanceCriteria];
+
+    // TODO: when we'll have a list of users for a vote (wait for meeting module), check the minPercentAnswers
+
+    return {
+      optionId: winningOption.optionId,
+      isValid: isAcceptanceCriteriaMet,
+      lastBallotResults: answersCount,
+    };
+  }
 
   private async getLastBallot(
     voteId: string,

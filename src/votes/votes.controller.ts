@@ -7,11 +7,14 @@ import {
   Post,
   UseFilters,
 } from '@nestjs/common';
-import { VotesService } from './votes.service';
+import { VotesService, VoteWinningOption } from './votes.service';
 import { GetUser } from 'src/auth/decorators/user.decorator';
 import { User, UserRole } from 'src/users/users.entity';
 import { z } from 'zod';
-import { NewPollQuestionSchema } from 'src/poll-question/poll-question.service';
+import {
+  NewPollQuestionSchema,
+  QuestionAnswersCount,
+} from 'src/poll-question/poll-question.service';
 import { Roles } from 'src/auth/rules.decorator';
 import { CustomExceptionFilter } from 'src/CustomExceptionFilter';
 import {
@@ -159,6 +162,7 @@ export class VotesController {
     });
   }
 
+  @Roles(UserRole.ADMIN)
   @Post(':voteId/ballots')
   async openNewBallot(
     @Param('voteId') voteId: string,
@@ -167,13 +171,17 @@ export class VotesController {
     this.voteService.openNewBallot(voteId, newQuestion);
   }
 
-  /*
   @Get(':voteId/results')
-  async getLastBallotResults(@Param('voteId') voteId: string) {
-    return this.voteService.getResults(voteId);
+  async getCurrentBallotResults(
+    @Param('voteId') voteId: string,
+  ): Promise<QuestionAnswersCount> {
+    return this.voteService.getCurrentBallotResults(voteId);
   }
 
-  
-
-  */
+  @Get(':voteId/winning-option')
+  async getWinningOption(
+    @Param('voteId') voteId: string,
+  ): Promise<VoteWinningOption> {
+    return this.voteService.getWinningOption(voteId);
+  }
 }
