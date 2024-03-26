@@ -8,10 +8,10 @@ import {
 import { Response } from 'express';
 import { ZodError } from 'zod';
 
-@Catch(HttpException, ZodError)
+@Catch(HttpException, ZodError, Error)
 export class CustomExceptionFilter implements ExceptionFilter {
   catch(
-    exception: HttpException | NotFoundException | ZodError,
+    exception: HttpException | NotFoundException | ZodError | Error,
     host: ArgumentsHost,
   ) {
     const ctx = host.switchToHttp();

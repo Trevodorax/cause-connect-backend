@@ -1,4 +1,5 @@
 import { Association } from 'src/associations/associations.entity';
+import { PollOption } from 'src/poll-question/entities/poll-option.entity';
 import { Task } from 'src/tasks/tasks.entity';
 import {
   Entity,
@@ -6,6 +7,8 @@ import {
   PrimaryGeneratedColumn,
   ManyToOne,
   OneToMany,
+  ManyToMany,
+  JoinTable,
 } from 'typeorm';
 
 export enum UserRole {
@@ -40,4 +43,8 @@ export class User {
 
   @OneToMany(() => Task, (task) => task.user)
   tasks: Task[];
+
+  @ManyToMany(() => PollOption, (answer) => answer.responders)
+  @JoinTable()
+  answers: PollOption[];
 }

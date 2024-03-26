@@ -17,6 +17,7 @@ import * as bcrypt from 'bcrypt';
 import { Association } from 'src/associations/associations.entity';
 import { EmailService } from 'src/email/email.service';
 import { v4 as uuidv4 } from 'uuid';
+import { PollOption } from 'src/poll-question/entities/poll-option.entity';
 
 @Injectable()
 export class UsersService {
@@ -170,6 +171,21 @@ export class UsersService {
       where: { email, association: { id: associationId } },
       relations: ['association'],
     });
+  }
+
+  async addAnswersToUser(userId: string, optionIds: string[]): Promise<void> {
+    const user = await this.findOneById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const userAnswers = user?.answers ?? [];
+
+    userAnswers.push(...optionIds.map((id) => ({ id }) as PollOption));
+
+    user.answers = userAnswers;
+
+    await this.userRepository.save(user);
   }
 
   private async passwordToHash(password: string): Promise<string> {

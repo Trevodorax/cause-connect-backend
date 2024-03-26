@@ -10,6 +10,8 @@ import { AssociationsModule } from './associations/associations.module';
 import { EmailModule } from './email/email.module';
 import { ProjectsModule } from './projects/projects.module';
 import { TasksModule } from './tasks/tasks.module';
+import { PollQuestionModule } from './poll-question/poll-question.module';
+import { SurveysModule } from './surveys/surveys.module';
 
 @Module({
   imports: [
@@ -27,6 +29,8 @@ import { TasksModule } from './tasks/tasks.module';
     EmailModule,
     ProjectsModule,
     TasksModule,
+    PollQuestionModule,
+    SurveysModule,
   ],
   providers: [AppService, AuthService],
 })

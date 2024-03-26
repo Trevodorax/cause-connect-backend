@@ -1,4 +1,5 @@
 import { Project } from 'src/projects/projects.entity';
+import { Survey } from 'src/surveys/surveys.entity';
 import { User } from 'src/users/users.entity';
 import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
 
@@ -21,4 +22,7 @@ export class Association {
 
   @OneToMany(() => Project, (project) => project.association)
   projects: Project[];
+
+  @OneToMany(() => Survey, (survey) => survey.association)
+  surveys: Survey[];
 }
