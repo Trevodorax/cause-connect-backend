@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
   Param,
   Patch,
@@ -15,39 +14,63 @@ import { z } from 'zod';
 import { NewPollQuestionSchema } from 'src/poll-question/poll-question.service';
 import { Roles } from 'src/auth/rules.decorator';
 import { CustomExceptionFilter } from 'src/CustomExceptionFilter';
-import { VoteVisibility } from './entities/votes.entity';
+import {
+  VoteAcceptanceCriteria,
+  VoteStatus,
+  VoteVisibility,
+} from './entities/votes.entity';
+import { PollQuestion } from 'src/poll-question/entities/poll-question.entity';
 
 interface VoteResponse {
   id: string;
   title: string;
   description: string;
-  status: string;
-  visibility: string;
+  status: VoteStatus;
+  visibility: VoteVisibility;
+  minPercentAnswers: number;
+  acceptanceCriteria: VoteAcceptanceCriteria;
 }
 
 export interface FullVoteResponse extends VoteResponse {
-  questions: {
+  question: {
     id: string;
     prompt: string;
     type: string;
     options: { id: string; content: string }[];
-  }[];
+  };
 }
 
 const CreateVoteSchema = z.object({
   title: z.string(),
   description: z.string(),
   visibility: z.enum([VoteVisibility.PUBLIC, VoteVisibility.PRIVATE]),
-  questions: z.array(NewPollQuestionSchema.omit({ voteId: true })),
+  minPercentAnswers: z.number(),
+  acceptanceCriteria: z.enum([
+    VoteAcceptanceCriteria.MAJORITY,
+    VoteAcceptanceCriteria.TWO_THIRDS,
+    VoteAcceptanceCriteria.UNANIMITY,
+  ]),
+  question: NewPollQuestionSchema.omit({ surveyId: true }),
+});
+
+const UpdateVoteSchema = z.object({
+  title: z.string().optional(),
+  description: z.string().optional(),
+  visibility: z
+    .enum([VoteVisibility.PUBLIC, VoteVisibility.PRIVATE])
+    .optional(),
+  minPercentAnswers: z.number().optional(),
+  acceptanceCriteria: z
+    .enum([
+      VoteAcceptanceCriteria.MAJORITY,
+      VoteAcceptanceCriteria.TWO_THIRDS,
+      VoteAcceptanceCriteria.UNANIMITY,
+    ])
+    .optional(),
 });
 
 const AnswerVoteSchema = z.object({
-  answers: z.array(
-    z.object({
-      questionId: z.string(),
-      optionIds: z.array(z.string()),
-    }),
-  ),
+  optionIds: z.array(z.string()),
 });
 
 @UseFilters(new CustomExceptionFilter())
@@ -69,6 +92,8 @@ export class VotesController {
       description: vote.description,
       status: vote.status,
       visibility: vote.visibility,
+      minPercentAnswers: vote.minPercentAnswers,
+      acceptanceCriteria: vote.acceptanceCriteria,
     }));
   }
 
@@ -81,11 +106,8 @@ export class VotesController {
     const validVote = CreateVoteSchema.parse(vote);
 
     const newVote = await this.voteService.create({
-      title: validVote.title,
-      description: validVote.description,
+      ...validVote,
       associationId: user.association.id,
-      visibility: validVote.visibility,
-      questions: validVote.questions,
     });
 
     return {
@@ -94,6 +116,8 @@ export class VotesController {
       description: newVote.description,
       status: newVote.status,
       visibility: newVote.visibility,
+      minPercentAnswers: newVote.minPercentAnswers,
+      acceptanceCriteria: newVote.acceptanceCriteria,
     };
   }
 
@@ -104,31 +128,21 @@ export class VotesController {
   }
 
   @Roles(UserRole.ADMIN)
-  @Delete(':voteId')
-  async deleteVote(@Param('voteId') voteId: string): Promise<VoteResponse> {
-    const vote = await this.voteService.delete(voteId);
-    return {
-      id: vote.id,
-      title: vote.title,
-      description: vote.description,
-      status: vote.status,
-      visibility: vote.visibility,
-    };
-  }
-
-  @Roles(UserRole.ADMIN)
   @Patch(':voteId')
   async updateVote(
     @Param('voteId') voteId: string,
-    @Body() vote: Partial<z.infer<typeof CreateVoteSchema>>,
+    @Body() vote: Partial<z.infer<typeof UpdateVoteSchema>>,
   ): Promise<VoteResponse> {
-    const updatedVote = await this.voteService.update(voteId, vote);
+    const validVote = UpdateVoteSchema.parse(vote);
+    const updatedVote = await this.voteService.update(voteId, validVote);
     return {
       id: updatedVote.id,
       title: updatedVote.title,
       description: updatedVote.description,
       status: updatedVote.status,
       visibility: updatedVote.visibility,
+      minPercentAnswers: updatedVote.minPercentAnswers,
+      acceptanceCriteria: updatedVote.acceptanceCriteria,
     };
   }
 
@@ -141,12 +155,25 @@ export class VotesController {
     await this.voteService.answerVote({
       voteId,
       responderId: user.id,
-      ...answers,
+      optionIds: answers.optionIds,
     });
   }
 
+  @Post(':voteId/ballots')
+  async openNewBallot(
+    @Param('voteId') voteId: string,
+    @Body() newQuestion: PollQuestion,
+  ) {
+    this.voteService.openNewBallot(voteId, newQuestion);
+  }
+
+  /*
   @Get(':voteId/results')
-  async getVoteResults(@Param('voteId') voteId: string) {
+  async getLastBallotResults(@Param('voteId') voteId: string) {
     return this.voteService.getResults(voteId);
   }
+
+  
+
+  */
 }

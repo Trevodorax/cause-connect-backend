@@ -41,6 +41,14 @@ const CreateSurveySchema = z.object({
   questions: z.array(NewPollQuestionSchema.omit({ surveyId: true })),
 });
 
+const UpdateSurveySchema = z.object({
+  title: z.string().optional(),
+  description: z.string().optional(),
+  visibility: z
+    .enum([SurveyVisibility.PUBLIC, SurveyVisibility.PRIVATE])
+    .optional(),
+});
+
 const AnswerSurveySchema = z.object({
   answers: z.array(
     z.object({
@@ -124,9 +132,13 @@ export class SurveysController {
   @Patch(':surveyId')
   async updateSurvey(
     @Param('surveyId') surveyId: string,
-    @Body() survey: Partial<z.infer<typeof CreateSurveySchema>>,
+    @Body() survey: Partial<z.infer<typeof UpdateSurveySchema>>,
   ): Promise<SurveyResponse> {
-    const updatedSurvey = await this.surveyService.update(surveyId, survey);
+    const validSurvey = UpdateSurveySchema.parse(survey);
+    const updatedSurvey = await this.surveyService.update(
+      surveyId,
+      validSurvey,
+    );
     return {
       id: updatedSurvey.id,
       title: updatedSurvey.title,

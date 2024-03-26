@@ -45,12 +45,15 @@ export class Vote {
   @Column()
   minPercentAnswers: number;
 
-  @Column()
-  acceptanceCriteria: string;
+  @Column({ type: 'simple-enum', enum: VoteAcceptanceCriteria })
+  acceptanceCriteria: VoteAcceptanceCriteria;
 
   @ManyToOne(() => Association, (association) => association.votes)
   association: Association;
 
   @OneToMany(() => Ballot, (ballot) => ballot.vote)
   ballots: Ballot[];
+
+  @Column({ default: 1 })
+  currentBallot: number;
 }
