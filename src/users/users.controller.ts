@@ -13,6 +13,7 @@ import { Roles } from 'src/auth/rules.decorator';
 import { User, UserRole } from './users.entity';
 import { GetUser } from 'src/auth/decorators/user.decorator';
 import { z } from 'zod';
+import { Public } from 'src/auth/decorators/public.decorator';
 
 const CreateUserSchema = z.object({
   email: z.string().email(),
@@ -30,6 +31,11 @@ export interface UserResponse {
 interface SendPasswordEmailResponse {
   email: string;
 }
+
+const SendPasswordEmailSchema = z.object({
+  email: z.string().email(),
+  associationId: z.string(),
+});
 
 @Controller('users')
 export class UsersController {
@@ -118,6 +124,25 @@ export class UsersController {
     @Param('id') id: string,
   ): Promise<SendPasswordEmailResponse> {
     const email = await this.usersService.sendPasswordResetEmail(id);
+
+    return { email };
+  }
+
+  @Public()
+  @Post('send-password-email')
+  async sendPasswordEmailByEmail(
+    @Body() body: z.infer<typeof SendPasswordEmailSchema>,
+  ) {
+    const { email, associationId } = SendPasswordEmailSchema.parse(body);
+    const user = await this.usersService.findOneByEmailInAssociation(
+      email,
+      associationId,
+    );
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    await this.usersService.sendPasswordResetEmail(user.id);
 
     return { email };
   }
