@@ -174,7 +174,10 @@ export class UsersService {
   }
 
   async addAnswersToUser(userId: string, optionIds: string[]): Promise<void> {
-    const user = await this.findOneById(userId);
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['answers'],
+    });
     if (!user) {
       throw new NotFoundException('User not found');
     }

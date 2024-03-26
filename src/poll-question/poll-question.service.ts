@@ -40,7 +40,7 @@ export const NewPollQuestionSchema = z.object({
   prompt: z.string(),
   type: PollQuestionTypeSchema,
   options: z.array(z.object({ content: z.string() })),
-  surveyId: z.string(),
+  surveyId: z.string().optional(), // undefined when creating for a vote (a ballot)
 });
 
 export type NewPollQuestionDto = z.infer<typeof NewPollQuestionSchema>;
@@ -69,17 +69,24 @@ export class PollQuestionService {
     });
 
     const questionId = result.generatedMaps[0].id;
-    const question = await this.findById(questionId);
+    const question = await this.pollQuestionRepository.findOne({
+      where: { id: questionId },
+      relations: ['options'],
+    });
     if (!question) {
       throw new InternalServerErrorException('Failed to create question');
     }
 
-    // create options and add them to question
-    await Promise.all(
+    // create options
+    const createdOptions = await Promise.all(
       pollQuestion.options.map((option) =>
         this.createPollOption(option, questionId),
       ),
     );
+
+    question.options = [...question.options, ...createdOptions];
+
+    await this.pollQuestionRepository.save(question);
 
     return question;
   }
