@@ -15,7 +15,7 @@ import { EventVisibility } from './events.entity';
 import { GetUser } from 'src/auth/decorators/user.decorator';
 import { UserResponse } from 'src/users/users.controller';
 
-const createEventSchema = z.object({
+export const createEventSchema = z.object({
   title: z.string(),
   description: z.string(),
   summary: z.string(),
@@ -24,7 +24,7 @@ const createEventSchema = z.object({
   endTime: z.coerce.date(),
 });
 
-const updateEventSchema = z.object({
+export const updateEventSchema = z.object({
   title: z.string().optional(),
   description: z.string().optional(),
   summary: z.string().optional(),
@@ -35,7 +35,7 @@ const updateEventSchema = z.object({
   endTime: z.coerce.date().optional(),
 });
 
-interface EventResponse {
+export interface EventResponse {
   id: string;
   title: string;
   description: string;

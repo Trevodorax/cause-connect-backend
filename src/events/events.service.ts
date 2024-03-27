@@ -5,7 +5,7 @@ import { Event, EventVisibility } from './events.entity';
 import { User } from 'src/users/users.entity';
 import { AssociationsService } from 'src/associations/associations.service';
 
-interface NewEventDto {
+export interface NewEventDto {
   title: string;
   description: string;
   summary: string;
@@ -16,7 +16,7 @@ interface NewEventDto {
   associationId: string;
 }
 
-interface PartialEventDto {
+export interface PartialEventDto {
   title?: string;
   description?: string;
   summary?: string;
@@ -25,7 +25,7 @@ interface PartialEventDto {
   endTime?: Date;
 }
 
-interface EventParticipantsDto {
+export interface EventParticipantsDto {
   eventId: string;
   participantIds: string[];
 }
