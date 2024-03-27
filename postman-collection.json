@@ -1,0 +1,2351 @@
+{
+	"info": {
+		"_postman_id": "a4c2bb13-6c48-4ff7-af5e-4e5674b29564",
+		"name": "cause-connect-api",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "19600153"
+	},
+	"item": [
+		{
+			"name": "associations",
+			"item": [
+				{
+					"name": "create association",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Stores the association id in a collection variable",
+									"var associationId = pm.response.json().id;",
+									"pm.collectionVariables.set(\"currentAssociationId\", associationId);",
+									"",
+									"pm.test(\"Response status code is 201\", function () {",
+									"    pm.expect(pm.response.to.have.status(201));",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response has the required fields - id, name, logo, and description\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData).to.have.property('id');",
+									"    pm.expect(responseData).to.have.property('name');",
+									"    pm.expect(responseData).to.have.property('logo');",
+									"    pm.expect(responseData).to.have.property('description');",
+									"});",
+									"",
+									"",
+									"pm.test(\"ID is a non-empty string\", function () {",
+									"  const responseData = pm.response.json();",
+									"  ",
+									"  pm.expect(responseData.id).to.be.a('string').and.to.have.lengthOf.at.least(1);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Logo is in a valid format\", function () {",
+									"  const responseData = pm.response.json();",
+									"",
+									"  pm.expect(responseData).to.be.an('object');",
+									"  pm.expect(responseData.logo).to.match(/^data:image\\/[a-zA-Z]*;base64,([a-zA-Z0-9\\/+\\n=]*)$/, \"Logo should be in a valid format\");",
+									"});",
+									"",
+									"",
+									"pm.test(\"Description is a non-empty string\", function () {",
+									"  const responseData = pm.response.json();",
+									"  ",
+									"  pm.expect(responseData).to.be.an('object');",
+									"  pm.expect(responseData.description).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Description should not be empty\");",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"admin\": {\n    \"email\": \"phvcgdx@gmail.com\",\n    \"fullName\": \"{{$randomFullName}}\"\n  },\n  \"association\": {\n    \"name\": \"{{$randomCompanyName}}\",\n    \"logo\": \"{{$randomImageUrl}}\",\n    \"description\": \"{{$randomWords}}\"\n  }\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/associations",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"associations"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get all",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.expect(pm.response.code).to.equal(200);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response has the required fields - id, name, logo, and description\", function () {",
+									"    const responseData = pm.response.json();",
+									"",
+									"    pm.expect(responseData).to.be.an('array').that.is.not.empty;",
+									"    ",
+									"    responseData.forEach(function(item) {",
+									"        pm.expect(item.id).to.exist;",
+									"        pm.expect(item.name).to.exist;",
+									"        pm.expect(item.logo).to.exist;",
+									"        pm.expect(item.description).to.exist;",
+									"    });",
+									"});",
+									"",
+									"pm.test(\"Content-Type header is application/json\", function () {",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response is an array with at least one element\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('array').that.is.not.empty;",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/associations",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"associations"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get one",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response has the required fields - id, name, logo, and description\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData).to.have.property('id');",
+									"    pm.expect(responseData).to.have.property('name');",
+									"    pm.expect(responseData).to.have.property('logo');",
+									"    pm.expect(responseData).to.have.property('description');",
+									"});",
+									"",
+									"",
+									"pm.test(\"Id is a non-empty string\", function () {",
+									"  const responseData = pm.response.json();",
+									"  ",
+									"  pm.expect(responseData).to.be.an('object');",
+									"  pm.expect(responseData.id).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Id should not be empty\");",
+									"});",
+									"",
+									"pm.test(\"Description is a non-empty string\", function () {",
+									"  const responseData = pm.response.json();",
+									"  ",
+									"  pm.expect(responseData).to.be.an('object');",
+									"  pm.expect(responseData.description).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Description should not be empty\");",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/associations/{{currentAssociationId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"associations",
+								"{{currentAssociationId}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "users",
+			"item": [
+				{
+					"name": "create user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"pm.test(\"Response status code is 201\", function () {",
+									"    pm.expect(pm.response.code).to.equal(201);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response has the required fields - id, email, fullName, and role\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData).to.have.property('id');",
+									"    pm.expect(responseData).to.have.property('email');",
+									"    pm.expect(responseData).to.have.property('fullName');",
+									"    pm.expect(responseData).to.have.property('role');",
+									"});",
+									"",
+									"",
+									"pm.test(\"Email is in a valid format\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData.email).to.be.a('string');",
+									"    pm.expect(responseData.email).to.match(/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Role is a non-empty string\", function () {",
+									"    const responseData = pm.response.json();",
+									"",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData.role).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Role should not be empty\");",
+									"});",
+									"",
+									"",
+									"pm.test(\"Verify Content-Type header is set to application/json\", function () {",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"paul@gmail.com\",\n    \"fullName\": \"{{$randomFullName}}\",\n    \"role\": \"internal\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/users",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get users",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzZXJJZDEiLCJhc3NvY2lhdGlvbklkIjoiOThlMDM5YmYtNTgxNi00OTY5LWE5ODgtNjVmMDI2Y2E3NmNiIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzExMzY3OTg0LCJleHAiOjE3MTE0NTQzODR9.h--Spcjv8hIoHhdhJA9u3Lv51RzlzOnHPMlT--loVPQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"paul.gaudeaux.pro@gmail.com\",\n    \"fullName\": \"{{$randomFullName}}\",\n    \"role\": \"internal\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/users",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get one",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM1ZDQzZWU3LTdjZjctNDg5YS1hZjM1LWU5NTMyNjc5ZjMxZSIsImFzc29jaWF0aW9uSWQiOiI5OGUwMzliZi01ODE2LTQ5NjktYTk4OC02NWYwMjZjYTc2Y2IiLCJyb2xlIjoiZXh0ZXJuYWwiLCJpYXQiOjE3MTEzNjAyODksImV4cCI6MTcxMTQ0NjY4OX0.ClJTqCJ30LSFQTpBuYUS53mydzvF-Y0XqOsXgTLl0Jo",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/users/cdfc4b9e-8fa5-45c7-b866-212b5d68d04f",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users",
+								"cdfc4b9e-8fa5-45c7-b866-212b5d68d04f"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzZXJJZDEiLCJhc3NvY2lhdGlvbklkIjoiOThlMDM5YmYtNTgxNi00OTY5LWE5ODgtNjVmMDI2Y2E3NmNiIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzExMzYxNjgyLCJleHAiOjE3MTE0NDgwODJ9.u0tQyUfMAiaDjesnnFsH84CbMlJOD5Aq7TqwyHlxuIw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/users/userId3",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users",
+								"userId3"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "send password reset email",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzZXJJZDEiLCJhc3NvY2lhdGlvbklkIjoiOThlMDM5YmYtNTgxNi00OTY5LWE5ODgtNjVmMDI2Y2E3NmNiIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzExMzYxNjgyLCJleHAiOjE3MTE0NDgwODJ9.u0tQyUfMAiaDjesnnFsH84CbMlJOD5Aq7TqwyHlxuIw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/users/6b1ba7db-5403-413c-901e-63c7014e68f7/send-password-email",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users",
+								"6b1ba7db-5403-413c-901e-63c7014e68f7",
+								"send-password-email"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "send password reset email by email",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzZXJJZDEiLCJhc3NvY2lhdGlvbklkIjoiOThlMDM5YmYtNTgxNi00OTY5LWE5ODgtNjVmMDI2Y2E3NmNiIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzExMzYxNjgyLCJleHAiOjE3MTE0NDgwODJ9.u0tQyUfMAiaDjesnnFsH84CbMlJOD5Aq7TqwyHlxuIw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"phvcgdx@gmail.com\",\n    \"associationId\": \"9c033322-6e64-4273-9c87-6ba7050a69be\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/users/send-password-email",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users",
+								"send-password-email"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get me",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Store the userId in a collection variable",
+									"var userId = pm.response.json().id;",
+									"pm.collectionVariables.set(\"currentUserId\", userId);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/users/me",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users",
+								"me"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "surveys",
+			"item": [
+				{
+					"name": "create survey",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"pm.test(\"Response status code is 201\", function () {",
+									"  pm.expect(pm.response.to.have.status(201));",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response has the required fields\", function () {",
+									"  const responseData = pm.response.json();",
+									"  ",
+									"  pm.expect(responseData).to.be.an('object');",
+									"  pm.expect(responseData).to.have.property('id');",
+									"  pm.expect(responseData).to.have.property('title');",
+									"  pm.expect(responseData).to.have.property('description');",
+									"  pm.expect(responseData).to.have.property('status');",
+									"  pm.expect(responseData).to.have.property('visibility');",
+									"});",
+									"",
+									"",
+									"pm.test(\"Id is a non-empty string\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData.id).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Id should not be empty\");",
+									"});",
+									"",
+									"",
+									"pm.test(\"Title is a non-empty string\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData.title).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Title should not be empty\");",
+									"});",
+									"",
+									"",
+									"pm.test(\"Visibility is either public or private\", function () {",
+									"  const responseData = pm.response.json();",
+									"  ",
+									"  pm.expect(responseData).to.be.an('object');",
+									"  pm.expect(responseData.visibility).to.be.oneOf(['public', 'private']);",
+									"});",
+									"",
+									"// Store the survey id in a collection variable",
+									"var surveyId = pm.response.json().id;",
+									"pm.collectionVariables.set(\"currentSurveyId\", surveyId);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"{{$randomFullName}}\",\n  \"description\": \"{{$randomCatchPhrase}}\",\n  \"visibility\": \"private\",\n  \"questions\": [\n    {\n      \"prompt\": \"{{$randomCompanyName}}\",\n      \"type\": \"single_choice\",\n      \"options\": [\n        {\n            \"content\": \"{{$randomCity}}\"\n        },\n        {\n            \"content\": \"{{$randomCity}}\"\n        },\n        {\n            \"content\": \"{{$randomCity}}\"\n        }\n      ]\n    }\n  ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/surveys",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"surveys"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get one",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"pm.test(\"Response status code is 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Content-Type header is application/json\", function () {",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response has the required fields\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData.id).to.exist;",
+									"    pm.expect(responseData.title).to.exist;",
+									"    pm.expect(responseData.description).to.exist;",
+									"    pm.expect(responseData.status).to.exist;",
+									"    pm.expect(responseData.visibility).to.exist;",
+									"    pm.expect(responseData.questions).to.exist;",
+									"});",
+									"",
+									"",
+									"pm.test(\"Each question has the required fields - id, prompt, type, and options\", function () {",
+									"    const responseData = pm.response.json();",
+									"    pm.expect(responseData.questions).to.be.an('array');",
+									"    responseData.questions.forEach(question => {",
+									"        pm.expect(question.id).to.exist;",
+									"        pm.expect(question.prompt).to.exist;",
+									"        pm.expect(question.type).to.exist;",
+									"        pm.expect(question.options).to.be.an('array');",
+									"    });",
+									"});",
+									"",
+									"",
+									"pm.test(\"Each option has the required fields - id and content\", function () {",
+									"    const responseData = pm.response.json();",
+									"",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData.questions).to.be.an('array');",
+									"",
+									"    responseData.questions.forEach(function(question) {",
+									"        pm.expect(question.options).to.be.an('array');",
+									"",
+									"        question.options.forEach(function(option) {",
+									"            pm.expect(option).to.be.an('object');",
+									"            pm.expect(option.id).to.exist;",
+									"            pm.expect(option.content).to.exist;",
+									"        });",
+									"    });",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/surveys/{{currentSurveyId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"surveys",
+								"{{currentSurveyId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete one",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/surveys/{{currentSurveyId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"surveys",
+								"{{currentSurveyId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "answer survey",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"answers\": [\n        {\n            \"questionId\": \"cab6053e-700d-4ccc-a04a-0cf3ee7d6fc5\",\n            \"optionIds\": [\"51d8e6e3-6486-4119-98da-bf4d912b8d20\"]\n        }\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/surveys/{{currentSurveyId}}/answers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"surveys",
+								"{{currentSurveyId}}",
+								"answers"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get survey result",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Content-Type is application/json\", function () {",
+									"  pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+									"});",
+									"",
+									"",
+									"pm.test(\"Validate the structure of the response - questionId and optionCounts\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('array').that.is.not.empty;",
+									"    ",
+									"    responseData.forEach(function(result) {",
+									"        pm.expect(result).to.be.an('object');",
+									"        pm.expect(result).to.have.property('questionId').that.is.a('string');",
+									"        pm.expect(result).to.have.property('optionCounts').that.is.an('array').and.is.not.empty;",
+									"    });",
+									"});",
+									"",
+									"",
+									"pm.test(\"OptionCounts array should not be empty\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('array');",
+									"    responseData.forEach(function(result) {",
+									"        pm.expect(result.optionCounts).to.be.an('array').that.is.not.empty;",
+									"    });",
+									"});",
+									"",
+									"",
+									"pm.test(\"Verify that the count in optionCounts is a non-negative integer\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('array');",
+									"    ",
+									"    responseData.forEach(function(result) {",
+									"        pm.expect(result.optionCounts).to.be.an('array');",
+									"        ",
+									"        result.optionCounts.forEach(function(option) {",
+									"            pm.expect(option.count).to.be.a('number');",
+									"            pm.expect(option.count).to.be.at.least(0);",
+									"        });",
+									"    });",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"answers\": [\n        {\n            \"questionId\": \"fdd5dc9e-0e1a-4c92-8749-c755583953be\",\n            \"optionIds\": [\"4d8c9061-65f6-4b9b-91e6-6915fcbc55e3\"]\n        }\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/surveys/4b93a6b7-7afe-4a8b-b41f-279fd2edde97/results",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"surveys",
+								"4b93a6b7-7afe-4a8b-b41f-279fd2edde97",
+								"results"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "votes",
+			"item": [
+				{
+					"name": "create",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"pm.test(\"Response status code is 201\", function () {",
+									"    pm.expect(pm.response.code).to.equal(201);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response has the required fields\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData).to.include.all.keys('id', 'title', 'description', 'status', 'visibility', 'minPercentAnswers', 'acceptanceCriteria');",
+									"});",
+									"",
+									"",
+									"pm.test(\"Id is a non-empty string\", function () {",
+									"    const responseData = pm.response.json();",
+									"",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData.id).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Id should not be empty\");",
+									"});",
+									"",
+									"",
+									"pm.test(\"MinPercentAnswers is a non-negative integer\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData.minPercentAnswers).to.be.a('number');",
+									"    pm.expect(responseData.minPercentAnswers).to.be.at.least(0, \"MinPercentAnswers should be a non-negative integer\");",
+									"});",
+									"",
+									"",
+									"pm.test(\"Visibility and status have valid values\", function () {",
+									"  const responseData = pm.response.json();",
+									"  ",
+									"  pm.expect(responseData).to.be.an('object');",
+									"  pm.expect(responseData.visibility).to.exist.and.to.be.oneOf(['public', 'private']);",
+									"  pm.expect(responseData.status).to.exist.and.to.be.oneOf(['active', 'inactive', 'pending']);",
+									"});",
+									"",
+									"// Stores the current vote ID in a collection variable",
+									"var currentVoteId = pm.response.json().id;",
+									"pm.collectionVariables.set(\"currentVoteId\", currentVoteId);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"{{$randomFullName}}\",\n  \"description\": \"{{$randomCatchPhrase}}\",\n  \"minPercentAnswers\": 100,\n  \"acceptanceCriteria\": \"majority\",\n  \"visibility\": \"public\",\n  \"question\": {\n        \"prompt\": \"{{$randomCompanyName}}\",\n        \"type\": \"single_choice\",\n        \"options\": [\n        {\n            \"content\": \"{{$randomCity}}\"\n        },\n        {\n            \"content\": \"{{$randomCity}}\"\n        },\n        {\n            \"content\": \"{{$randomCity}}\"\n        }\n        ]\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/votes",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"votes"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.expect(pm.response.code).to.equal(200);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Title is a non-empty string\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData.title).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Title should not be empty\");",
+									"});",
+									"",
+									"",
+									"pm.test(\"Visibility is either 'public' or 'private'\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData.visibility).to.satisfy(function (value) {",
+									"        return value === \"public\" || value === \"private\";",
+									"    }, \"Visibility should be either 'public' or 'private'\");",
+									"});",
+									"",
+									"",
+									"pm.test(\"MinPercentAnswers is a non-negative integer\", function () {",
+									"    const responseData = pm.response.json();",
+									"",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData.minPercentAnswers).to.be.a('number').and.to.satisfy((value) => value >= 0, \"MinPercentAnswers must be a non-negative integer\");",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"description\": \"{{$randomCatchPhrase}}\",\n  \"minPercentAnswers\": 80,\n  \"acceptanceCriteria\": \"two_thirds\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/votes/{{currentVoteId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"votes",
+								"{{currentVoteId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get one",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.expect(pm.response.to.have.status(200));",
+									"});",
+									"",
+									"",
+									"pm.test(\"Content-Type is application/json\", function () {",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+									"});",
+									"",
+									"",
+									"pm.test(\"Options array in question contains at least one element\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData.question.options).to.be.an('array').that.is.not.empty;",
+									"});",
+									"",
+									"",
+									"pm.test(\"ID is a non-empty string\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData.id).to.be.a('string').and.to.have.lengthOf.at.least(1, \"ID should be a non-empty string\");",
+									"});",
+									"",
+									"",
+									"pm.test(\"Visibility is either public or private\", function () {",
+									"  const responseData = pm.response.json();",
+									"  ",
+									"  pm.expect(responseData).to.be.an('object');",
+									"  pm.expect(responseData.visibility).to.exist.and.to.satisfy((value) => {",
+									"    return value === 'public' || value === 'private';",
+									"  }, \"Visibility should be either public or private\");",
+									"});",
+									"",
+									"",
+									"pm.test(\"MinPercentAnswers is a non-negative integer\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData.minPercentAnswers).to.be.a('number');",
+									"    pm.expect(responseData.minPercentAnswers).to.be.at.least(0);",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/votes/{{currentVoteId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"votes",
+								"{{currentVoteId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get all",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/votes",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"votes"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "answer",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"optionIds\": [\"2aebe303-15bc-4249-baaa-156391fe61e3\"]}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/votes/{{currentVoteId}}/answers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"votes",
+								"{{currentVoteId}}",
+								"answers"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get result",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response has the required fields - questionId and optionCounts\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData).to.have.property('questionId');",
+									"    pm.expect(responseData).to.have.property('optionCounts');",
+									"});",
+									"",
+									"",
+									"pm.test(\"QuestionId is a non-empty string\", function () {",
+									"  const responseData = pm.response.json();",
+									"  ",
+									"  pm.expect(responseData).to.be.an('object');",
+									"  pm.expect(responseData.questionId).to.exist.and.to.be.a('string').and.to.have.lengthOf.at.least(1, \"QuestionId should be a non-empty string\");",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/votes/{{currentVoteId}}/results",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"votes",
+								"{{currentVoteId}}",
+								"results"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get winning option",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Content-Type header is application/json\", function () {",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+									"});",
+									"",
+									"",
+									"pm.test(\"OptionId is a non-empty string\", function () {",
+									"  const responseData = pm.response.json();",
+									"  ",
+									"  pm.expect(responseData).to.be.an('object');",
+									"  pm.expect(responseData.optionId).to.exist.and.to.be.a('string').and.to.have.lengthOf.at.least(1, \"OptionId should be a non-empty string\");",
+									"});",
+									"",
+									"",
+									"pm.test(\"IsValid is a boolean value\", function () {",
+									"  const responseData = pm.response.json();",
+									"  ",
+									"  pm.expect(responseData).to.be.an('object');",
+									"  pm.expect(responseData.isValid).to.be.a('boolean');",
+									"});",
+									"",
+									"",
+									"pm.test(\"LastBallotResults object contains questionId and optionCounts\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData.lastBallotResults).to.be.an('object');",
+									"    pm.expect(responseData.lastBallotResults.questionId).to.exist;",
+									"    pm.expect(responseData.lastBallotResults.optionCounts).to.be.an('array');",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/votes/{{currentVoteId}}/winning-option",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"votes",
+								"{{currentVoteId}}",
+								"winning-option"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "open new ballot",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"prompt\": \"(New) {{$randomCompanyName}}\",\n    \"type\": \"single_choice\",\n    \"options\": [\n    {\n        \"content\": \"(New) {{$randomCity}}\"\n    },\n    {\n        \"content\": \"(New) {{$randomCity}}\"\n    },\n    {\n        \"content\": \"(New) {{$randomCity}}\"\n    }\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/votes/{{currentVoteId}}/ballots",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"votes",
+								"{{currentVoteId}}",
+								"ballots"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "events",
+			"item": [
+				{
+					"name": "Create Event",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"pm.test(\"Response status code is 201\", function () {",
+									"  pm.expect(pm.response.to.have.status(201));",
+									"});",
+									"",
+									"",
+									"pm.test(\"Association object has required fields\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData.association).to.exist;",
+									"    pm.expect(responseData.association.id).to.exist;",
+									"    pm.expect(responseData.association.name).to.exist;",
+									"    pm.expect(responseData.association.logo).to.exist;",
+									"    pm.expect(responseData.association.description).to.exist;",
+									"});",
+									"",
+									"",
+									"pm.test(\"Id is a non-empty string\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData.id).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Id should be a non-empty string\");",
+									"});",
+									"",
+									"// Store the id of the current event in a global variable",
+									"var currentEventId = pm.response.json().id;",
+									"pm.collectionVariables.set(\"currentEventId\", currentEventId);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Example Event Title\",\n  \"description\": \"Example Description\",\n  \"summary\": \"Example Summary\",\n  \"visibility\": \"public\",\n  \"startTime\": \"2023-01-01T09:00:00Z\",\n  \"endTime\": \"2023-01-01T17:00:00Z\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/events",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"events"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Public Events",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.expect(pm.response.code).to.equal(200);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Id is a non-empty string\", function () {",
+									"    const responseData = pm.response.json();",
+									"    responseData.forEach(event => {",
+									"        pm.expect(event.id).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Id should be a non-empty string\");",
+									"    });",
+									"});",
+									"",
+									"pm.test(\"Visibility is a valid option\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    responseData.forEach(event => {",
+									"        pm.expect(event.visibility).to.be.oneOf(['public', 'private', 'protected']);",
+									"    });",
+									"});",
+									"",
+									"",
+									"pm.test(\"Content-Type header is application/json\", function () {",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/events",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"events"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Event By ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.expect(pm.response.code).to.equal(200);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Title is a non-empty string\", function () {",
+									"  const responseData = pm.response.json();",
+									"  ",
+									"  pm.expect(responseData).to.be.an('object');",
+									"  pm.expect(responseData.title).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Title should not be empty\");",
+									"});",
+									"",
+									"",
+									"pm.test(\"Start time is in a valid date format\", function () {",
+									"  const responseData = pm.response.json();",
+									"  ",
+									"  pm.expect(responseData).to.be.an('object');",
+									"  pm.expect(responseData.startTime).to.match(/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.\\d{3}Z$/);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Visibility is one of the expected values\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData.visibility).to.be.oneOf(['public', 'private', 'restricted']);",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/events/{{currentEventId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"events",
+								"{{currentEventId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Event",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/events/{{currentEventId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"events",
+								"{{currentEventId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Event",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"pm.test(\"Response status code is 200\", function () {",
+									"  pm.expect(pm.response.code).to.equal(200);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response has the required fields\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData.id).to.exist;",
+									"    pm.expect(responseData.title).to.exist;",
+									"    pm.expect(responseData.description).to.exist;",
+									"    pm.expect(responseData.summary).to.exist;",
+									"    pm.expect(responseData.startTime).to.exist;",
+									"    pm.expect(responseData.endTime).to.exist;",
+									"    pm.expect(responseData.visibility).to.exist;",
+									"});",
+									"",
+									"",
+									"pm.test(\"Title is a non-empty string\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData.title).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Title should not be empty\");",
+									"});",
+									"",
+									"pm.test(\"Visibility is one of the expected values\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData.visibility).to.be.oneOf(['public', 'private', 'protected']);",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"visibility\": \"private\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/events/{{currentEventId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"events",
+								"{{currentEventId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Register For Event",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/events/{{currentEventId}}/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"events",
+								"{{currentEventId}}",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get participants",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response has the required fields - id, email, fullName, and role\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('array');",
+									"    responseData.forEach(function(participant) {",
+									"        pm.expect(participant).to.be.an('object');",
+									"        pm.expect(participant).to.include.all.keys('id', 'email', 'fullName', 'role');",
+									"    });",
+									"});",
+									"",
+									"",
+									"pm.test(\"Email is in a valid format\", function () {",
+									"  const responseData = pm.response.json();",
+									"",
+									"  responseData.forEach(function(participant) {",
+									"    pm.expect(participant.email).to.be.a('string').and.to.match(/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/, \"Email format is not valid\");",
+									"  });",
+									"});",
+									"",
+									"",
+									"pm.test(\"Participants array is present and contains expected number of elements\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('array');",
+									"    pm.expect(responseData).to.have.lengthOf.at.least(1, \"Participants array should not be empty\");",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/events/{{currentEventId}}/participants",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"events",
+								"{{currentEventId}}",
+								"participants"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Participants",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"participantIds\": [\"{{currentUserId}}\"]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/events/{{currentEventId}}/participants",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"events",
+								"{{currentEventId}}",
+								"participants"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Unregister From Event",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/events/{{currentEventId}}/unregister",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"events",
+								"{{currentEventId}}",
+								"unregister"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "meetings",
+			"item": [
+				{
+					"name": "Get All Public meetings",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response has the required fields - id, agendum, event\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('array');",
+									"    responseData.forEach(item => {",
+									"        pm.expect(item.id).to.exist;",
+									"        pm.expect(item.agendum).to.exist;",
+									"        pm.expect(item.event).to.exist;",
+									"    });",
+									"});",
+									"",
+									"",
+									"pm.test(\"Event title is a non-empty string\", function () {",
+									"  const responseData = pm.response.json();",
+									"  ",
+									"  pm.expect(responseData).to.be.an('array');",
+									"  responseData.forEach(function(meeting) {",
+									"    pm.expect(meeting.event.title).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Event title should not be empty\");",
+									"  });",
+									"});",
+									"",
+									"",
+									"pm.test(\"Content-Type header is application/json\", function () {",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/meetings",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"meetings"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Event By ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/meetings/{{currentMeetingId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"meetings",
+								"{{currentMeetingId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete meeting",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/meetings/{{currentMeetingId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"meetings",
+								"{{currentMeetingId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update meeting",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.expect(pm.response.code).to.equal(200);",
+									"});",
+									"",
+									"pm.test(\"Id and agendum fields must exist\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData.id).to.exist.and.to.be.a('string');",
+									"    pm.expect(responseData.agendum).to.exist.and.to.be.a('string');",
+									"});",
+									"",
+									"",
+									"pm.test(\"Event object should exist and be an object\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData.event).to.exist.and.to.be.an('object');",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"agendum\": \"new agendum\",\n    \"event\": {\n        \"visibility\": \"private\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/meetings/{{currentMeetingId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"meetings",
+								"{{currentMeetingId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Register For meeting",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/meetings/{{currentMeetingId}}/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"meetings",
+								"{{currentMeetingId}}",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get participants",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response has the required fields - id, email, fullName, and role\", function () {",
+									"    const responseData = pm.response.json();",
+									"",
+									"    pm.expect(responseData).to.be.an('array');",
+									"    responseData.forEach(function(participant) {",
+									"        pm.expect(participant).to.have.property('id');",
+									"        pm.expect(participant).to.have.property('email');",
+									"        pm.expect(participant).to.have.property('fullName');",
+									"        pm.expect(participant).to.have.property('role');",
+									"    });",
+									"});",
+									"",
+									"",
+									"pm.test(\"Email is in a valid format\", function () {",
+									"  const responseData = pm.response.json();",
+									"  ",
+									"  pm.expect(responseData).to.be.an('array').that.is.not.empty;",
+									"  ",
+									"  responseData.forEach(function(participant) {",
+									"    pm.expect(participant.email).to.match(/^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$/);",
+									"  });",
+									"});",
+									"",
+									"",
+									"pm.test(\"Participants array is present and contains expected number of elements\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('array');",
+									"    pm.expect(responseData).to.have.lengthOf.at.least(1, \"Participants array should not be empty\");",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/meetings/{{currentMeetingId}}/participants",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"meetings",
+								"{{currentMeetingId}}",
+								"participants"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Participants",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"participantIds\": [\"{{currentUserId}}\"]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/meetings/{{currentMeetingId}}/participants",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"meetings",
+								"{{currentMeetingId}}",
+								"participants"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Unregister From meeting",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"participantIds\": [\"{{currentUserId}}\"]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/meetings/{{currentMeetingId}}/unregister",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"meetings",
+								"{{currentMeetingId}}",
+								"unregister"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Meeting",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Response is a JSON object\", function () {",
+									"    pm.expect(pm.response.json()).to.be.an('object');",
+									"});",
+									"",
+									"pm.test(\"Response has properties agendum, event, id, and presenceCode\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('agendum');",
+									"    pm.expect(jsonData).to.have.property('event');",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData).to.have.property('presenceCode');",
+									"});",
+									"",
+									"// Stores the meeting ID in a collection variable",
+									"var currentMeetingId = pm.response.json().id;",
+									"pm.collectionVariables.set(\"currentMeetingId\", currentMeetingId);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"agendum\": \"Your Meeting Agendum\",\n  \"event\": {\n    \"title\": \"Event Title\",\n    \"description\": \"Event Description\",\n    \"summary\": \"Event Summary\",\n    \"visibility\": \"public\",\n    \"startTime\": \"2023-01-01T09:00:00.000Z\",\n    \"endTime\": \"2023-01-02T17:00:00.000Z\"\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/meetings",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"meetings"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "generate presence code",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.collectionVariables.set(\"meetingPresenceCode\", jsonData.presenceCode);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/meetings/{{currentMeetingId}}/presence-code",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"meetings",
+								"{{currentMeetingId}}",
+								"presence-code"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "generate presence code Copy",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"presenceCode\": \"{{meetingPresenceCode}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/meetings/{{currentMeetingId}}/present",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"meetings",
+								"{{currentMeetingId}}",
+								"present"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get present",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/meetings/{{currentMeetingId}}/present",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"meetings",
+								"{{currentMeetingId}}",
+								"present"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "declare absent",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"userId\": \"{{currentUserId}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/meetings/{{currentMeetingId}}/present",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"meetings",
+								"{{currentMeetingId}}",
+								"present"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "auth",
+			"item": [
+				{
+					"name": "login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Content type is application/json\", function () {",
+									"    pm.response.to.have.header('Content-Type', 'application/json');",
+									"});",
+									"",
+									"pm.test(\"Token is present in the response\", function () {",
+									"    pm.expect(pm.response.json()).to.have.property('token');",
+									"    pm.collectionVariables.set(\"token\", pm.response.json().token);",
+									"    ",
+									"});",
+									"",
+									"// Set the token as a collection variable",
+									"pm.collectionVariables.set(\"token\", pm.response.json().token);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"phvcgdx@gmail.com\",\n    \"password\": \"password\",\n    \"associationId\": \"{{currentAssociationId}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "reset password",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"passwordResetCode\": \"2b369353-58d6-4d23-996f-f5530498227b\",\n    \"newPassword\": \"password\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/reset-password",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"reset-password"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "localhost:3000",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": ""
+		},
+		{
+			"key": "currentAssociationId",
+			"value": ""
+		},
+		{
+			"key": "currentUserId",
+			"value": ""
+		},
+		{
+			"key": "currentMeetingId",
+			"value": ""
+		},
+		{
+			"key": "meetingPresenceCode",
+			"value": ""
+		},
+		{
+			"key": "currentSurveyId",
+			"value": ""
+		},
+		{
+			"key": "currentVoteId",
+			"value": ""
+		},
+		{
+			"key": "currentEventId",
+			"value": ""
+		}
+	]
+}
