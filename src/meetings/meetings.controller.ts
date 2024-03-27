@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -185,6 +186,51 @@ export class MeetingsController {
   @Get(':id/participants')
   async getParticipants(@Param('id') eventId: string): Promise<UserResponse[]> {
     const participants = await this.meetingsService.getParticipants(eventId);
+    return participants.map((participant) => ({
+      id: participant.id,
+      email: participant.email,
+      fullName: participant.fullName,
+      role: participant.role,
+    }));
+  }
+
+  @Roles(UserRole.ADMIN)
+  @Post(':id/presence-code')
+  async generatePresenceCode(
+    @Param('id') meetingId: string,
+  ): Promise<{ presenceCode: string }> {
+    const presenceCode =
+      await this.meetingsService.generatePresenceCode(meetingId);
+
+    return { presenceCode };
+  }
+
+  @Post(':id/present')
+  async answerPresent(
+    @Param('id') meetingId: string,
+    @GetUser() user: User,
+    @Body() { presenceCode }: { presenceCode: string },
+  ): Promise<void> {
+    return this.meetingsService.answerPresent(meetingId, user.id, presenceCode);
+  }
+
+  @Roles(UserRole.ADMIN)
+  @Delete(':id/present')
+  async declareAbsent(
+    @Param('id') meetingId: string,
+    @Body() { userId }: { userId: string },
+  ): Promise<void> {
+    if (!userId) throw new BadRequestException('userId is required');
+    return this.meetingsService.declareAbsent(meetingId, userId);
+  }
+
+  @Get(':id/present')
+  async getPresentParticipants(
+    @Param('id') meetingId: string,
+  ): Promise<UserResponse[]> {
+    const participants =
+      await this.meetingsService.getPresentParticipants(meetingId);
+
     return participants.map((participant) => ({
       id: participant.id,
       email: participant.email,

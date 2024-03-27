@@ -3,7 +3,7 @@ import { Survey } from 'src/surveys/surveys.entity';
 import { User } from 'src/users/users.entity';
 import { Vote } from 'src/votes/entities/votes.entity';
 import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
-import { Event } from 'src/events/events.entity';
+import { Event } from 'src/events/entities/events.entity';
 
 @Entity()
 export class Association {

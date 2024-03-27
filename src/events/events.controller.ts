@@ -11,7 +11,7 @@ import { EventsService } from './events.service';
 import { Roles } from 'src/auth/rules.decorator';
 import { User, UserRole } from 'src/users/users.entity';
 import { z } from 'zod';
-import { EventVisibility } from './events.entity';
+import { EventVisibility } from './entities/events.entity';
 import { GetUser } from 'src/auth/decorators/user.decorator';
 import { UserResponse } from 'src/users/users.controller';
 
@@ -144,6 +144,35 @@ export class EventsController {
       email: participant.email,
       fullName: participant.fullName,
       role: participant.role,
+    }));
+  }
+
+  @Roles(UserRole.ADMIN)
+  @Post(':id/present')
+  async declarePresent(
+    @Param('id') eventId: string,
+    @Body() user: { userId: string },
+  ): Promise<void> {
+    return this.eventsService.markUserPresent(eventId, user.userId);
+  }
+
+  @Roles(UserRole.ADMIN)
+  @Delete(':id/present')
+  async declareAbsent(
+    @Param('id') eventId: string,
+    @Body() user: { userId: string },
+  ): Promise<void> {
+    return this.eventsService.markUserAbsent(eventId, user.userId);
+  }
+
+  @Get(':id/present')
+  async getPresentUsers(@Param('id') eventId: string): Promise<UserResponse[]> {
+    const presentUsers = await this.eventsService.getPresentUsers(eventId);
+    return presentUsers.map((user) => ({
+      id: user.id,
+      email: user.email,
+      fullName: user.fullName,
+      role: user.role,
     }));
   }
 }

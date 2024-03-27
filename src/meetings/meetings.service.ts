@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   EventsService,
@@ -8,6 +12,7 @@ import {
 import { Meeting } from './meetings.entity';
 import { Repository } from 'typeorm';
 import { User } from 'src/users/users.entity';
+import { v4 as uuid } from 'uuid';
 
 interface NewMeetingDto {
   agendum: string;
@@ -115,6 +120,42 @@ export class MeetingsService {
   async getParticipants(id: string): Promise<User[]> {
     const meetingId = await this.getEventId(id);
     return this.eventsService.getParticipants(meetingId);
+  }
+
+  // declare a user as present in a meeting
+  async answerPresent(
+    id: string,
+    userId: string,
+    presenceCode: string,
+  ): Promise<void> {
+    const meeting = await this.getMeetingById(id);
+    if (meeting.presenceCode !== presenceCode) {
+      throw new UnauthorizedException('Invalid presence code');
+    }
+
+    const eventId = await this.getEventId(id);
+    await this.eventsService.markUserPresent(eventId, userId);
+  }
+
+  async declareAbsent(id: string, userId: string): Promise<void> {
+    const eventId = await this.getEventId(id);
+    await this.eventsService.markUserAbsent(eventId, userId);
+  }
+
+  async getPresentParticipants(id: string): Promise<User[]> {
+    const eventId = await this.getEventId(id);
+    return this.eventsService.getPresentUsers(eventId);
+  }
+
+  async generatePresenceCode(id: string): Promise<string> {
+    const meeting = await this.getMeetingById(id);
+    const presenceCode = uuid();
+
+    meeting.presenceCode = presenceCode;
+
+    await this.meetingsRepository.save(meeting);
+
+    return presenceCode;
   }
 
   private async getEventId(id: string): Promise<string> {

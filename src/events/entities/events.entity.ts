@@ -1,13 +1,12 @@
 import { Association } from 'src/associations/associations.entity';
-import { User } from 'src/users/users.entity';
 import {
   Entity,
   Column,
   PrimaryGeneratedColumn,
-  ManyToMany,
   ManyToOne,
-  JoinTable,
+  OneToMany,
 } from 'typeorm';
+import { EventUserEnrollment } from './event-user-enrollments';
 
 export enum EventVisibility {
   PUBLIC = 'public',
@@ -37,9 +36,11 @@ export class Event {
   @Column({ type: 'simple-enum', enum: EventVisibility })
   visibility: EventVisibility;
 
-  @ManyToMany(() => User, (user) => user.events)
-  @JoinTable()
-  participants: User[];
+  @OneToMany(
+    () => EventUserEnrollment,
+    (eventUserEnrollment) => eventUserEnrollment.event,
+  )
+  eventUserEnrollments: EventUserEnrollment[];
 
   @ManyToOne(() => Association, (association) => association.events)
   association: Association;

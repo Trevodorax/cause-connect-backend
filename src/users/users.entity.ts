@@ -1,7 +1,6 @@
 import { Association } from 'src/associations/associations.entity';
 import { PollOption } from 'src/poll-question/entities/poll-option.entity';
 import { Task } from 'src/tasks/tasks.entity';
-import { Event } from 'src/events/events.entity';
 import {
   Entity,
   Column,
@@ -11,6 +10,7 @@ import {
   ManyToMany,
   JoinTable,
 } from 'typeorm';
+import { EventUserEnrollment } from 'src/events/entities/event-user-enrollments';
 
 export enum UserRole {
   SUPER_ADMIN = 'super_admin',
@@ -49,6 +49,6 @@ export class User {
   @JoinTable()
   answers: PollOption[];
 
-  @ManyToMany(() => Event, (event) => event.participants)
-  events: Event[];
+  @OneToMany(() => EventUserEnrollment, (enrollment) => enrollment.user)
+  eventUserEnrollments: EventUserEnrollment[];
 }

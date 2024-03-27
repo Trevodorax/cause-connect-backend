@@ -1,9 +1,14 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Event, EventVisibility } from './events.entity';
+import { In, Repository } from 'typeorm';
+import { Event, EventVisibility } from './entities/events.entity';
 import { User } from 'src/users/users.entity';
 import { AssociationsService } from 'src/associations/associations.service';
+import { EventUserEnrollment } from './entities/event-user-enrollments';
 
 export interface NewEventDto {
   title: string;
@@ -35,6 +40,8 @@ export class EventsService {
   constructor(
     @InjectRepository(Event)
     private eventsRepository: Repository<Event>,
+    @InjectRepository(EventUserEnrollment)
+    private eventUserEnrollmentsRepository: Repository<EventUserEnrollment>,
     private associationsService: AssociationsService,
   ) {}
   // create
@@ -101,46 +108,72 @@ export class EventsService {
 
   // add participants by id
   async addParticipants(dto: EventParticipantsDto): Promise<void> {
-    const event = await this.eventsRepository.findOne({
-      where: { id: dto.eventId },
-      relations: ['participants'],
+    const alreadyEnrolled = await this.eventUserEnrollmentsRepository.exists({
+      where: {
+        eventId: dto.eventId,
+        userId: In(dto.participantIds),
+      },
     });
-    if (!event) {
-      throw new NotFoundException(`Event with id ${dto.eventId} not found`);
+    if (alreadyEnrolled) {
+      throw new BadRequestException(
+        'At least one user in the list is already enrolled',
+      );
     }
 
-    const newParticipants = dto.participantIds.map((id) => ({ id }) as User);
-    event.participants = [...event.participants, ...newParticipants];
-    await this.eventsRepository.save(event);
+    try {
+      await this.eventUserEnrollmentsRepository.save(
+        dto.participantIds.map((participantId) => ({
+          eventId: dto.eventId,
+          userId: participantId,
+          present: false,
+        })),
+      );
+    } catch (e) {
+      throw new NotFoundException('Event or user not found');
+    }
   }
 
   // remove participants by id
   async removeParticipants(dto: EventParticipantsDto): Promise<void> {
-    const event = await this.eventsRepository.findOne({
-      where: { id: dto.eventId },
-      relations: ['participants'],
+    await this.eventUserEnrollmentsRepository.delete({
+      eventId: dto.eventId,
+      userId: In(dto.participantIds),
     });
-    if (!event) {
-      throw new NotFoundException(`Event with id ${dto.eventId} not found`);
-    }
-
-    const participants = event.participants.filter(
-      (participant) => !dto.participantIds.includes(participant.id),
-    );
-    event.participants = participants;
-    await this.eventsRepository.save(event);
   }
 
   // get participants
   async getParticipants(eventId: string): Promise<User[]> {
-    const event = await this.eventsRepository.findOne({
-      where: { id: eventId },
-      relations: ['participants'],
+    const enrollments = await this.eventUserEnrollmentsRepository.find({
+      where: { eventId },
+      relations: ['user'],
     });
-    if (!event) {
-      throw new NotFoundException(`Event with id ${eventId} not found`);
-    }
 
-    return event.participants;
+    return enrollments.map((enrollment) => enrollment.user);
+  }
+
+  // mark user as present
+  async markUserPresent(eventId: string, userId: string): Promise<void> {
+    await this.eventUserEnrollmentsRepository.update(
+      { eventId, userId },
+      { present: true },
+    );
+  }
+
+  // mark user as absent
+  async markUserAbsent(eventId: string, userId: string): Promise<void> {
+    await this.eventUserEnrollmentsRepository.update(
+      { eventId, userId },
+      { present: false },
+    );
+  }
+
+  // get present users
+  async getPresentUsers(eventId: string): Promise<User[]> {
+    const enrollments = await this.eventUserEnrollmentsRepository.find({
+      where: { eventId, present: true },
+      relations: ['user'],
+    });
+
+    return enrollments.map((enrollment) => enrollment.user);
   }
 }
