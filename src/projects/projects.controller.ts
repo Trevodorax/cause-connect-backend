@@ -10,8 +10,8 @@ import { TaskResponse } from 'src/tasks/tasks.controller';
 const NewProjectSchema = z.object({
   name: z.string(),
   description: z.string(),
-  startTime: z.date(),
-  endTime: z.date(),
+  startTime: z.coerce.date(),
+  endTime: z.coerce.date(),
 });
 
 interface ProjectResponse {
@@ -25,15 +25,15 @@ interface ProjectResponse {
 const PartialProjectSchema = z.object({
   name: z.string().optional(),
   description: z.string().optional(),
-  startTime: z.date().optional(),
-  endTime: z.date().optional(),
+  startTime: z.coerce.date().optional(),
+  endTime: z.coerce.date().optional(),
 });
 
 const NewTaskSchema = z.object({
   title: z.string(),
   description: z.string(),
   status: z.enum([TaskStatus.TODO, TaskStatus.IN_PROGRESS, TaskStatus.DONE]),
-  deadline: z.date(),
+  deadline: z.coerce.date(),
 });
 
 @Controller('projects')

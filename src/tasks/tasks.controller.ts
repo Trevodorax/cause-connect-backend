@@ -13,7 +13,7 @@ const PartialTaskSchema = z.object({
   status: z
     .enum([TaskStatus.TODO, TaskStatus.IN_PROGRESS, TaskStatus.DONE])
     .optional(),
-  deadline: z.date().optional(),
+  deadline: z.coerce.date().optional(),
   projectId: z.string().optional(),
   responsibleUserId: z.string().optional(),
 });

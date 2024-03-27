@@ -1,6 +1,7 @@
 import { Association } from 'src/associations/associations.entity';
 import { PollOption } from 'src/poll-question/entities/poll-option.entity';
 import { Task } from 'src/tasks/tasks.entity';
+import { Event } from 'src/events/events.entity';
 import {
   Entity,
   Column,
@@ -47,4 +48,7 @@ export class User {
   @ManyToMany(() => PollOption, (answer) => answer.responders)
   @JoinTable()
   answers: PollOption[];
+
+  @ManyToMany(() => Event, (event) => event.participants)
+  events: Event[];
 }
