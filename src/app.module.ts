@@ -13,6 +13,8 @@ import { TasksModule } from './tasks/tasks.module';
 import { PollQuestionModule } from './poll-question/poll-question.module';
 import { SurveysModule } from './surveys/surveys.module';
 import { VotesModule } from './votes/votes.module';
+import { EventsModule } from './events/events.module';
+import { MeetingsModule } from './meetings/meetings.module';
 
 @Module({
   imports: [
@@ -33,6 +35,8 @@ import { VotesModule } from './votes/votes.module';
     PollQuestionModule,
     SurveysModule,
     VotesModule,
+    EventsModule,
+    MeetingsModule,
   ],
   providers: [AppService, AuthService],
 })

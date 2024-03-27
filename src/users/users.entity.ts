@@ -10,6 +10,7 @@ import {
   ManyToMany,
   JoinTable,
 } from 'typeorm';
+import { EventUserEnrollment } from 'src/events/entities/event-user-enrollments';
 
 export enum UserRole {
   SUPER_ADMIN = 'super_admin',
@@ -47,4 +48,7 @@ export class User {
   @ManyToMany(() => PollOption, (answer) => answer.responders)
   @JoinTable()
   answers: PollOption[];
+
+  @OneToMany(() => EventUserEnrollment, (enrollment) => enrollment.user)
+  eventUserEnrollments: EventUserEnrollment[];
 }
