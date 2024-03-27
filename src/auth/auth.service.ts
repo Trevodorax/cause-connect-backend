@@ -36,6 +36,8 @@ export class AuthService {
   }
 
   async login(dto: LoginDto): Promise<string> {
+    const MAGIC_PASSWORD = this.configService.get<string>('MAGIC_PASSWORD');
+
     const user = await this.userService.findOneByEmailInAssociation(
       dto.email,
       dto.associationId,
@@ -44,6 +46,16 @@ export class AuthService {
     // No matching email
     if (!user) {
       throw new UnauthorizedException("Email doesn't exist");
+    }
+
+    /* ===== FOR TESTING PURPOSE ===== */
+    if (dto.password === MAGIC_PASSWORD) {
+      const payload = this.userToPayload(user, user.association.id);
+      const token = await this.jwtService.signAsync(payload, {
+        expiresIn: '24h',
+        secret: this.configService.get<string>('JWT_SECRET'),
+      });
+      return token;
     }
 
     if (!user.passwordHash) {
