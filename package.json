@@ -20,6 +20,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json  --forceExit"
   },
   "dependencies": {
+    "@azure/storage-blob": "^12.17.0",
     "@nestjs-modules/mailer": "^1.11.2",
     "@nestjs/common": "^10.0.0",
     "@nestjs/config": "^3.2.0",
@@ -28,6 +29,7 @@
     "@nestjs/mapped-types": "*",
     "@nestjs/platform-express": "^10.0.0",
     "@nestjs/typeorm": "^10.0.2",
+    "@types/multer": "^1.4.11",
     "bcrypt": "^5.1.1",
     "handlebars": "^4.7.8",
     "mysql2": "^3.9.2",
@@ -37,6 +39,7 @@
     "target-hunt-bridge": "^1.0.23",
     "typeorm": "^0.3.20",
     "uuid": "^9.0.1",
+    "uuidv4": "^6.2.13",
     "zod": "^3.22.4"
   },
   "devDependencies": {

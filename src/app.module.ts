@@ -15,6 +15,8 @@ import { SurveysModule } from './surveys/surveys.module';
 import { VotesModule } from './votes/votes.module';
 import { EventsModule } from './events/events.module';
 import { MeetingsModule } from './meetings/meetings.module';
+import { FilesModule } from './files/files.module';
+import { DocumentsModule } from './documents/documents.module';
 
 @Module({
   imports: [
@@ -37,6 +39,8 @@ import { MeetingsModule } from './meetings/meetings.module';
     VotesModule,
     EventsModule,
     MeetingsModule,
+    FilesModule,
+    DocumentsModule,
   ],
   providers: [AppService, AuthService],
 })
