@@ -3,7 +3,7 @@ services:
   app:
     build: .
     ports:
-      - 3000:3000
+      - ${API_PORT}:3000
     depends_on:
       - mysql
     stop_grace_period: 3s

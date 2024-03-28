@@ -1,0 +1,22 @@
+name: Remote update execution
+on:
+  push:
+    branches:
+      - main
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+    - name: executing remote ssh commands using password
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USER }}
+        password: ${{ secrets.SSH_PASSWORD }}
+        script: |
+          cd /home/deploy/cause-connect/cause-connect-backend
+          git pull --rebase
+          echo "${{ secrets.ENV_FILE_CONTENT }}" > .env
+          sudo docker-compose down
+          sudo docker-compose up --build -d
