@@ -35,4 +35,16 @@ export class FilesAzureService {
 
     return fileUrl;
   }
+
+  public async deleteFile(fileName: string) {
+    this.containerName =
+      (await this.configService.get('AZURE_CONTAINER_NAME')) ?? '';
+
+    try {
+      const blockBlobClient = await this.getBlobClient(fileName);
+      await blockBlobClient.deleteIfExists();
+    } catch (error) {
+      console.log(error);
+    }
+  }
 }

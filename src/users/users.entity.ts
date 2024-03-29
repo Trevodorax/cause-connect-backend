@@ -11,6 +11,7 @@ import {
   JoinTable,
 } from 'typeorm';
 import { EventUserEnrollment } from 'src/events/entities/event-user-enrollments';
+import { DocumentAccess } from 'src/documents/entities/document-access.entity';
 
 export enum UserRole {
   SUPER_ADMIN = 'super_admin',
@@ -51,4 +52,7 @@ export class User {
 
   @OneToMany(() => EventUserEnrollment, (enrollment) => enrollment.user)
   eventUserEnrollments: EventUserEnrollment[];
+
+  @OneToMany(() => DocumentAccess, (documentAccess) => documentAccess.user)
+  documentAccesses: DocumentAccess[];
 }
