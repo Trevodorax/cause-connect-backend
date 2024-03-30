@@ -226,12 +226,11 @@ export class DocumentsService {
 
   // use share code
   async useShareCode({
-    documentId,
     shareCode,
     userId,
   }): Promise<{ document: Document; permissions: DocumentPermissionsEnum[] }> {
     const sharedDocument = await this.documentRepository.findOne({
-      where: { shareCode, id: documentId },
+      where: { shareCode },
       relations: ['shareCodePermissions'],
     });
     if (!sharedDocument) {
@@ -239,7 +238,7 @@ export class DocumentsService {
     }
 
     const existingDocumentAccess = await this.documentAccessRepository.findOne({
-      where: { userId, documentId },
+      where: { userId, documentId: sharedDocument.id },
       relations: ['permissions'],
     });
     const fallbackDocumentAccess = new DocumentAccess();

@@ -94,14 +94,12 @@ export class DocumentsController {
     return shareCode;
   }
 
-  @Post(':documentId/use-share-code')
+  @Post('use-share-code')
   async useShareCode(
-    @Param('documentId') documentId: string,
     @Body('shareCode') shareCode: string,
     @GetUser() user: User,
   ): Promise<DocumentResponse> {
     const { document, permissions } = await this.documentsService.useShareCode({
-      documentId,
       shareCode,
       userId: user.id,
     });
