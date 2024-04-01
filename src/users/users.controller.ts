@@ -14,6 +14,7 @@ import { User, UserRole } from './users.entity';
 import { GetUser } from 'src/auth/decorators/user.decorator';
 import { z } from 'zod';
 import { Public } from 'src/auth/decorators/public.decorator';
+import { AssociationResponse } from 'src/associations/associations.controller';
 
 const CreateUserSchema = z.object({
   email: z.string().email(),
@@ -26,6 +27,14 @@ export interface UserResponse {
   email: string;
   fullName: string;
   role: UserRole;
+}
+
+export interface UserWithAssociationResponse {
+  id: string;
+  email: string;
+  fullName: string;
+  role: UserRole;
+  association: AssociationResponse;
 }
 
 interface SendPasswordEmailResponse {
@@ -80,12 +89,24 @@ export class UsersController {
   }
 
   @Get('me')
-  me(@GetUser() user: UserResponse): UserResponse {
+  async me(
+    @GetUser() user: UserResponse,
+  ): Promise<UserWithAssociationResponse> {
+    const foundUser = await this.usersService.findOneById(user.id);
+    if (!foundUser) {
+      throw new NotFoundException('User not found');
+    }
     return {
-      id: user.id,
-      email: user.email,
-      fullName: user.fullName,
-      role: user.role,
+      id: foundUser.id,
+      email: foundUser.email,
+      fullName: foundUser.fullName,
+      role: foundUser.role,
+      association: {
+        id: foundUser.association.id,
+        description: foundUser.association.description,
+        logo: foundUser.association.logo,
+        name: foundUser.association.name,
+      },
     };
   }
 

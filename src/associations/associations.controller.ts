@@ -26,7 +26,7 @@ const CreateAssociationSchema = z.object({
   }),
 });
 
-interface AssociationResponse {
+export interface AssociationResponse {
   id: string;
   name: string;
   logo: string;
