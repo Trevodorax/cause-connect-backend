@@ -10,6 +10,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProjectsService } from 'src/projects/projects.service';
 import { UsersService } from 'src/users/users.service';
+import { User } from 'src/users/users.entity';
 
 export interface NewTaskDto {
   title: string;
@@ -136,6 +137,19 @@ export class TasksService {
     }
 
     await this.tasksRepository.save(task);
+
+    return task;
+  }
+
+  async assignUserToTask(dto: {
+    userId: string;
+    taskId: string;
+  }): Promise<Task> {
+    const task = await this.getTaskById(dto.taskId);
+
+    task.user = { id: dto.userId } as User;
+
+    this.tasksRepository.save(task);
 
     return task;
   }

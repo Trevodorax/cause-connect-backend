@@ -1,4 +1,12 @@
-import { Controller, Delete, Get, Param, Patch } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { z } from 'zod';
 import { TaskStatus } from './tasks.entity';
@@ -24,7 +32,7 @@ export interface TaskResponse {
   description: string;
   status: string;
   deadline: Date;
-  responsibleUser: UserResponse;
+  responsibleUser: UserResponse | null;
 }
 
 @Controller('tasks')
@@ -97,5 +105,29 @@ export class TasksController {
       deadline: task.deadline,
       responsibleUser: task.user,
     }));
+  }
+
+  @Roles(UserRole.ADMIN, UserRole.INTERNAL)
+  @Patch(':id/responsible-user')
+  async assignUserToTask(
+    @Param('id') taskId: string,
+    @Body() body: { userId: string },
+  ): Promise<TaskResponse> {
+    if (!body.userId) {
+      throw new UnprocessableEntityException('Please provide a user id.');
+    }
+    const task = await this.tasksService.assignUserToTask({
+      taskId,
+      userId: body.userId,
+    });
+
+    return {
+      id: task.id,
+      title: task.title,
+      deadline: task.deadline,
+      description: task.description,
+      status: task.status,
+      responsibleUser: task.user,
+    };
   }
 }

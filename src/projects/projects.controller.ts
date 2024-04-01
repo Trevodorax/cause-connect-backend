@@ -9,11 +9,11 @@ import {
 } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
 import { z } from 'zod';
-import { TaskStatus } from 'src/tasks/tasks.entity';
 import { GetUser } from 'src/auth/decorators/user.decorator';
 import { User, UserRole } from 'src/users/users.entity';
 import { Roles } from 'src/auth/rules.decorator';
 import { TaskResponse } from 'src/tasks/tasks.controller';
+import { TaskStatus } from 'src/tasks/tasks.entity';
 
 const NewProjectSchema = z.object({
   name: z.string(),
@@ -40,7 +40,6 @@ const PartialProjectSchema = z.object({
 const NewTaskSchema = z.object({
   title: z.string(),
   description: z.string(),
-  status: z.enum([TaskStatus.TODO, TaskStatus.IN_PROGRESS, TaskStatus.DONE]),
   deadline: z.coerce.date(),
 });
 
@@ -103,7 +102,7 @@ export class ProjectsController {
   @Roles(UserRole.ADMIN, UserRole.INTERNAL)
   @Get(':id')
   async getProjectById(
-    @Param('projectId') projectId: string,
+    @Param('id') projectId: string,
     @GetUser() user: User,
   ): Promise<ProjectResponse> {
     const project = await this.projectsService.getProjectById(
@@ -124,7 +123,7 @@ export class ProjectsController {
   @Roles(UserRole.ADMIN)
   @Delete(':id')
   async deleteProject(
-    id: string,
+    @Param('id') id: string,
     @GetUser() user: User,
   ): Promise<ProjectResponse> {
     const deletedProject = await this.projectsService.deleteProject(
@@ -145,7 +144,7 @@ export class ProjectsController {
   @Roles(UserRole.ADMIN)
   @Patch(':id')
   async updateProject(
-    @Param('projectId') projectId: string,
+    @Param('id') projectId: string,
     @Body() body: z.infer<typeof PartialProjectSchema>,
     @GetUser() user: User,
   ): Promise<ProjectResponse> {
@@ -183,7 +182,12 @@ export class ProjectsController {
       description: task.description,
       status: task.status,
       deadline: task.deadline,
-      responsibleUser: task.user,
+      responsibleUser: {
+        id: task.user.id,
+        email: task.user.email,
+        fullName: task.user.fullName,
+        role: task.user.role,
+      },
     }));
   }
 
@@ -200,7 +204,7 @@ export class ProjectsController {
       {
         title: validBody.title,
         description: validBody.description,
-        status: validBody.status,
+        status: TaskStatus.TODO,
         deadline: validBody.deadline,
         projectId: id,
       },
@@ -213,7 +217,7 @@ export class ProjectsController {
       description: task.description,
       status: task.status,
       deadline: task.deadline,
-      responsibleUser: task.user,
+      responsibleUser: null,
     };
   }
 
@@ -236,7 +240,7 @@ export class ProjectsController {
       description: task.description,
       status: task.status,
       deadline: task.deadline,
-      responsibleUser: task.user,
+      responsibleUser: null,
     }));
   }
 }

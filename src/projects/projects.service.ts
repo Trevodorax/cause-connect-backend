@@ -34,6 +34,8 @@ export class ProjectsService {
   constructor(
     @InjectRepository(Project)
     private projectsRepository: Repository<Project>,
+    @InjectRepository(Task)
+    private tasksRepository: Repository<Task>,
     private associationsService: AssociationsService,
     @Inject(forwardRef(() => TasksService))
     private tasksService: TasksService,
@@ -112,6 +114,7 @@ export class ProjectsService {
   ): Promise<Project> {
     const project = await this.projectsRepository.findOne({
       where: { id: projectId },
+      relations: ['association'],
     });
     if (!project) {
       throw new NotFoundException('Project not found');
@@ -134,6 +137,7 @@ export class ProjectsService {
   ): Promise<Project> {
     const project = await this.projectsRepository.findOne({
       where: { id: projectId },
+      relations: ['association'],
     });
     if (!project) {
       throw new NotFoundException('Project not found');
@@ -163,19 +167,23 @@ export class ProjectsService {
   ): Promise<Task[]> {
     const project = await this.projectsRepository.findOne({
       where: { id: projectId },
-      relations: ['tasks'],
+      relations: ['association'],
     });
     if (!project) {
       throw new NotFoundException('Project not found');
     }
-
     if (project.association.id !== userAssociationId) {
       throw new UnauthorizedException(
         'You are not in the association this project belongs to.',
       );
     }
 
-    return project.tasks;
+    const tasks = await this.tasksRepository.find({
+      where: { project: { id: projectId } },
+      relations: ['user'],
+    });
+
+    return tasks;
   }
 
   async getTasksForUserInProject(
@@ -185,19 +193,24 @@ export class ProjectsService {
   ): Promise<Task[]> {
     const project = await this.projectsRepository.findOne({
       where: { id: projectId },
-      relations: ['tasks'],
+      relations: ['association'],
     });
     if (!project) {
-      throw new NotFoundException('Project not found');
+      throw new NotFoundException('Project not found.');
     }
 
     if (project.association.id !== userAssociationId) {
-      throw new UnauthorizedException(
-        'You are not in the association this project belongs to.',
-      );
+      throw new UnauthorizedException('This is not your association');
     }
 
-    return project.tasks.filter((task) => task.user.id === userId);
+    const tasks = await this.tasksRepository.find({
+      where: {
+        user: { id: userId },
+        project: { id: projectId },
+      },
+    });
+
+    return tasks;
   }
 
   async addTaskToProject(
