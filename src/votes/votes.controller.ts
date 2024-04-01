@@ -12,6 +12,7 @@ import { GetUser } from 'src/auth/decorators/user.decorator';
 import { User, UserRole } from 'src/users/users.entity';
 import { z } from 'zod';
 import {
+  NewPollQuestionDto,
   NewPollQuestionSchema,
   QuestionAnswersCount,
 } from 'src/poll-question/poll-question.service';
@@ -22,7 +23,6 @@ import {
   VoteStatus,
   VoteVisibility,
 } from './entities/votes.entity';
-import { PollQuestion } from 'src/poll-question/entities/poll-question.entity';
 
 interface VoteResponse {
   id: string;
@@ -166,7 +166,7 @@ export class VotesController {
   @Post(':voteId/ballots')
   async openNewBallot(
     @Param('voteId') voteId: string,
-    @Body() newQuestion: PollQuestion,
+    @Body() newQuestion: NewPollQuestionDto,
   ) {
     this.voteService.openNewBallot(voteId, newQuestion);
   }

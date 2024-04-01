@@ -1,4 +1,12 @@
-import { Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+} from '@nestjs/common';
 import { ProjectsService } from './projects.service';
 import { z } from 'zod';
 import { TaskStatus } from 'src/tasks/tasks.entity';
@@ -42,7 +50,7 @@ export class ProjectsController {
   @Roles(UserRole.ADMIN)
   @Post()
   async createProject(
-    body: z.infer<typeof NewProjectSchema>,
+    @Body() body: z.infer<typeof NewProjectSchema>,
     @GetUser() user: User,
   ): Promise<ProjectResponse> {
     const validBody = NewProjectSchema.parse(body);
@@ -138,7 +146,7 @@ export class ProjectsController {
   @Patch(':id')
   async updateProject(
     @Param('projectId') projectId: string,
-    body: z.infer<typeof PartialProjectSchema>,
+    @Body() body: z.infer<typeof PartialProjectSchema>,
     @GetUser() user: User,
   ): Promise<ProjectResponse> {
     const validBody = PartialProjectSchema.parse(body);
@@ -184,7 +192,7 @@ export class ProjectsController {
   @Post(':projectId/tasks')
   async addTaskToProject(
     @Param('projectId') id: string,
-    body: z.infer<typeof NewTaskSchema>,
+    @Body() body: z.infer<typeof NewTaskSchema>,
     @GetUser() user: User,
   ): Promise<TaskResponse> {
     const validBody = NewTaskSchema.parse(body);
