@@ -6,6 +6,9 @@ import {
   Param,
   Patch,
   Post,
+  UnauthorizedException,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
 import { AssociationsService } from './associations.service';
 import { z } from 'zod';
@@ -13,6 +16,7 @@ import { Public } from 'src/auth/decorators/public.decorator';
 import { Roles } from 'src/auth/rules.decorator';
 import { User, UserRole } from 'src/users/users.entity';
 import { GetUser } from 'src/auth/decorators/user.decorator';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 const CreateAssociationSchema = z.object({
   admin: z.object({
@@ -90,5 +94,21 @@ export class AssociationsController {
     );
 
     return association;
+  }
+
+  @Post(':id/logo')
+  @UseInterceptors(FileInterceptor('logo'))
+  async updateAssociationLogo(
+    @UploadedFile() file: Express.Multer.File,
+    @Param('id') associationId: string,
+  ): Promise<{ logoUrl: string }> {
+    const url = await this.associationsService.updateAssociationLogo(
+      file,
+      associationId,
+    );
+
+    return {
+      logoUrl: url,
+    };
   }
 }

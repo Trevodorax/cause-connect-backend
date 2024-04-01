@@ -8,6 +8,7 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UsersService } from 'src/users/users.service';
 import { UserRole } from 'src/users/users.entity';
+import { FilesAzureService } from 'src/files/files.azure.service';
 
 interface NewAssociationDto {
   name: string;
@@ -35,6 +36,7 @@ export class AssociationsService {
     @InjectRepository(Association)
     private associationRepository: Repository<Association>,
     private userService: UsersService,
+    private filesService: FilesAzureService,
   ) {}
 
   async createAssociationWithAdmin(
@@ -125,5 +127,16 @@ export class AssociationsService {
     }
 
     return modifiedAssociation;
+  }
+
+  async updateAssociationLogo(
+    file: Express.Multer.File,
+    associationId: string,
+  ) {
+    const url = await this.filesService.uploadFile(file);
+
+    this.associationRepository.update({ id: associationId }, { logo: url });
+
+    return url;
   }
 }
