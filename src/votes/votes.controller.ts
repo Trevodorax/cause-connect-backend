@@ -1,12 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Patch,
-  Post,
-  UseFilters,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
 import { VotesService, VoteWinningOption } from './votes.service';
 import { GetUser } from 'src/auth/decorators/user.decorator';
 import { User, UserRole } from 'src/users/users.entity';
@@ -17,7 +9,6 @@ import {
   QuestionAnswersCount,
 } from 'src/poll-question/poll-question.service';
 import { Roles } from 'src/auth/rules.decorator';
-import { CustomExceptionFilter } from 'src/CustomExceptionFilter';
 import {
   VoteAcceptanceCriteria,
   VoteStatus,
@@ -76,17 +67,17 @@ const AnswerVoteSchema = z.object({
   optionIds: z.array(z.string()),
 });
 
-@UseFilters(new CustomExceptionFilter())
 @Controller('votes')
 export class VotesController {
   constructor(private readonly voteService: VotesService) {}
 
   @Get()
-  async getPublicVotesForUserAssociation(
+  async getVotesForUserAssociation(
     @GetUser() user: User,
   ): Promise<VoteResponse[]> {
-    const votes = await this.voteService.findAllPublicByAssociation(
+    const votes = await this.voteService.findAllByAssociation(
       user.association.id,
+      user.role,
     );
 
     return votes.map((vote) => ({

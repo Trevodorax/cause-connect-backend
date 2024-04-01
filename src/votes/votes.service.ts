@@ -22,6 +22,7 @@ import {
 } from 'src/poll-question/entities/poll-question.entity';
 import { FullVoteResponse } from './votes.controller';
 import { Ballot } from './entities/ballots.entity';
+import { UserRole } from 'src/users/users.entity';
 
 interface CreateVoteDto {
   title: string;
@@ -107,13 +108,21 @@ export class VotesService {
   }
 
   // get all votes for an association
-  async findAllPublicByAssociation(associationId: string): Promise<Vote[]> {
-    return this.voteRepository.find({
+  async findAllByAssociation(
+    associationId: string,
+    userRole: UserRole,
+  ): Promise<Vote[]> {
+    const votes = await this.voteRepository.find({
       where: {
         association: { id: associationId },
-        visibility: VoteVisibility.PUBLIC,
       },
     });
+
+    if (userRole === UserRole.ADMIN) {
+      return votes;
+    }
+
+    return votes.filter((vote) => vote.visibility === VoteVisibility.PUBLIC);
   }
 
   // get one full vote by id
