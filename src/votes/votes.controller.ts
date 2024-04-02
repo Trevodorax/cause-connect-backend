@@ -25,13 +25,15 @@ interface VoteResponse {
   acceptanceCriteria: VoteAcceptanceCriteria;
 }
 
+interface PollQuestionResponse {
+  id: string;
+  prompt: string;
+  type: string;
+  options: { id: string; content: string }[];
+}
+
 export interface FullVoteResponse extends VoteResponse {
-  question: {
-    id: string;
-    prompt: string;
-    type: string;
-    options: { id: string; content: string }[];
-  };
+  question: PollQuestionResponse;
 }
 
 const CreateVoteSchema = z.object({
@@ -158,8 +160,21 @@ export class VotesController {
   async openNewBallot(
     @Param('voteId') voteId: string,
     @Body() newQuestion: NewPollQuestionDto,
-  ) {
-    this.voteService.openNewBallot(voteId, newQuestion);
+  ): Promise<PollQuestionResponse> {
+    const pollQuestion = await this.voteService.openNewBallot(
+      voteId,
+      newQuestion,
+    );
+
+    return {
+      id: pollQuestion.id,
+      prompt: pollQuestion.prompt,
+      type: pollQuestion.type,
+      options: pollQuestion.options.map((option) => ({
+        id: option.id,
+        content: option.content,
+      })),
+    };
   }
 
   @Get(':voteId/results')
@@ -174,5 +189,17 @@ export class VotesController {
     @Param('voteId') voteId: string,
   ): Promise<VoteWinningOption> {
     return this.voteService.getWinningOption(voteId);
+  }
+
+  @Roles(UserRole.ADMIN)
+  @Patch(':voteId/close')
+  async closeVote(@Param('voteId') voteId: string) {
+    await this.voteService.closeVote(voteId);
+  }
+
+  @Roles(UserRole.ADMIN)
+  @Patch(':voteId/open')
+  async openVote(@Param('voteId') voteId: string) {
+    await this.voteService.openVote(voteId);
   }
 }

@@ -2,6 +2,7 @@ import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
@@ -189,6 +190,11 @@ export class VotesService {
   // answer a vote
   async answerVote(answer: AnswerVoteDto): Promise<void> {
     const vote = await this.findById(answer.voteId);
+
+    if (vote.status !== VoteStatus.OPEN) {
+      throw new UnauthorizedException('Vote is not open');
+    }
+
     const currentBallot = await this.getLastBallot(
       answer.voteId,
       vote.currentBallot,
@@ -253,6 +259,22 @@ export class VotesService {
       isValid: isAcceptanceCriteriaMet,
       lastBallotResults: answersCount,
     };
+  }
+
+  async openVote(voteId: string): Promise<void> {
+    const vote = await this.findById(voteId);
+
+    vote.status = VoteStatus.OPEN;
+
+    this.voteRepository.save(vote);
+  }
+
+  async closeVote(voteId: string): Promise<void> {
+    const vote = await this.findById(voteId);
+
+    vote.status = VoteStatus.DONE;
+
+    this.voteRepository.save(vote);
   }
 
   private async getLastBallot(
