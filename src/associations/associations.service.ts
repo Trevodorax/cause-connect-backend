@@ -2,6 +2,7 @@ import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
+  ConflictException,
 } from '@nestjs/common';
 import { Association } from './associations.entity';
 import { Repository } from 'typeorm';
@@ -43,6 +44,11 @@ export class AssociationsService {
     dto: NewAssociationWithAdminDto,
   ): Promise<Association> {
     const { admin, association } = dto;
+    
+    const existingAssociation = await this.associationRepository.findOneBy({ name: association.name });
+    if (existingAssociation) {
+      throw new ConflictException('An association with this name already exists');
+    }
 
     const createdAssociation = await this.createAssociation(association);
 
@@ -66,6 +72,10 @@ export class AssociationsService {
   async createAssociation(
     association: NewAssociationDto,
   ): Promise<Association | null> {
+    const existingAssociation = await this.associationRepository.findOneBy({ name: association.name });
+    if (existingAssociation) {
+      throw new ConflictException('An association with this name already exists');
+    }
     const result = await this.associationRepository.insert(association);
     const associationId = result.generatedMaps[0].id;
     return this.associationRepository.findOneBy({ id: associationId });
