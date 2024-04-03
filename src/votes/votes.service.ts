@@ -236,7 +236,7 @@ export class VotesService {
     );
 
     const sortedOptions = answersCount.optionCounts.sort(
-      (optionCount) => optionCount.count,
+      (firstOption, secondOption) => secondOption.count - firstOption.count,
     );
     const winningOption = sortedOptions[0];
 
@@ -249,7 +249,7 @@ export class VotesService {
       [VoteAcceptanceCriteria.UNANIMITY]: totalVotesCount,
     };
     const isAcceptanceCriteriaMet =
-      winningOption.count >=
+      winningOption.count >
       minNbVotesPerAcceptanceCriteria[vote.acceptanceCriteria];
 
     // TODO: when we'll have a list of users for a vote (wait for meeting module), check the minPercentAnswers
