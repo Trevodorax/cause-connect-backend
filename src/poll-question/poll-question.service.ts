@@ -140,6 +140,10 @@ export class PollQuestionService {
       possibleOptionIds.includes(optionId),
     );
 
+    if (validOptionIds.length !== answers.optionIds.length) {
+      throw new UnprocessableEntityException('Invalid option ids for question');
+    }
+
     const userAlreadyAnswered = await this.pollOptionRepository.existsBy({
       question: { id: answers.questionId },
       responders: { id: answers.responderId },
