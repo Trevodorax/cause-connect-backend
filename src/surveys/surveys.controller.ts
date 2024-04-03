@@ -64,10 +64,10 @@ export class SurveysController {
   constructor(private readonly surveyService: SurveysService) {}
 
   @Get()
-  async getPublicSurveysForUserAssociation(
+  async getSurveysForUserAssociation(
     @GetUser() user: User,
   ): Promise<SurveyResponse[]> {
-    const surveys = await this.surveyService.findAllPublicByAssociation(
+    const surveys = await this.surveyService.findAllByAssociation(
       user.association.id,
     );
 

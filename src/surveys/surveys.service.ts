@@ -84,11 +84,10 @@ export class SurveysService {
   }
 
   // get all surveys for an association
-  async findAllPublicByAssociation(associationId: string): Promise<Survey[]> {
+  async findAllByAssociation(associationId: string): Promise<Survey[]> {
     return this.surveyRepository.find({
       where: {
         association: { id: associationId },
-        visibility: SurveyVisibility.PUBLIC,
       },
     });
   }
