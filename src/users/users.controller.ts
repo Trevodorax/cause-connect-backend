@@ -8,7 +8,6 @@ import {
   Param,
   Patch,
   Post,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { Roles } from 'src/auth/rules.decorator';
@@ -48,13 +47,12 @@ const SendPasswordEmailSchema = z.object({
   associationId: z.string(),
 });
 
-const UpdatePersonalInfoSchema = z.object({
+const UpdateRoleSchema = z.object({
   fullName: z.string().optional(),
   email: z.string().email().optional(),
-});
-
-const UpdateRoleSchema = z.object({
-  role: z.enum([UserRole.ADMIN, UserRole.INTERNAL, UserRole.EXTERNAL]),
+  role: z
+    .enum([UserRole.ADMIN, UserRole.INTERNAL, UserRole.EXTERNAL])
+    .optional(),
 });
 
 @Controller('users')
@@ -137,34 +135,9 @@ export class UsersController {
     };
   }
 
-  @Patch(':id')
-  async changePersonalInfo(
-    @Param('id') id: string,
-    @GetUser() authenticatedUser: User,
-    @Body() body: z.infer<typeof UpdatePersonalInfoSchema>,
-  ): Promise<UserResponse> {
-    const validBody = UpdatePersonalInfoSchema.parse(body);
-    if (authenticatedUser.id !== id) {
-      throw new UnauthorizedException('You can only edit your own info');
-    }
-
-    const user = await this.usersService.edit(authenticatedUser.id, validBody);
-
-    if (!user) {
-      throw new InternalServerErrorException('Failed to update info');
-    }
-
-    return {
-      id: user.id,
-      email: user.email,
-      fullName: user.fullName,
-      role: user.role,
-    };
-  }
-
   @Roles(UserRole.ADMIN)
   @Patch(':id')
-  async changeRole(
+  async updateUser(
     @Param('id') id: string,
     @Body() body: z.infer<typeof UpdateRoleSchema>,
   ): Promise<UserResponse> {
