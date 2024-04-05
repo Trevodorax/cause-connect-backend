@@ -30,9 +30,6 @@ export class Survey {
   @Column()
   description: string;
 
-  @Column({ type: 'simple-enum', enum: SurveyStatus })
-  status: SurveyStatus;
-
   @Column({ type: 'simple-enum', enum: SurveyVisibility })
   visibility: SurveyVisibility;
 

@@ -6,7 +6,6 @@ import {
   Param,
   Patch,
   Post,
-  UseFilters,
 } from '@nestjs/common';
 import { SurveysService } from './surveys.service';
 import { GetUser } from 'src/auth/decorators/user.decorator';
@@ -15,13 +14,11 @@ import { z } from 'zod';
 import { NewPollQuestionSchema } from 'src/poll-question/poll-question.service';
 import { SurveyVisibility } from './surveys.entity';
 import { Roles } from 'src/auth/rules.decorator';
-import { CustomExceptionFilter } from 'src/CustomExceptionFilter';
 
 interface SurveyResponse {
   id: string;
   title: string;
   description: string;
-  status: string;
   visibility: string;
 }
 
@@ -58,7 +55,6 @@ const AnswerSurveySchema = z.object({
   ),
 });
 
-@UseFilters(new CustomExceptionFilter())
 @Controller('surveys')
 export class SurveysController {
   constructor(private readonly surveyService: SurveysService) {}
@@ -75,7 +71,6 @@ export class SurveysController {
       id: survey.id,
       title: survey.title,
       description: survey.description,
-      status: survey.status,
       visibility: survey.visibility,
     }));
   }
@@ -100,7 +95,6 @@ export class SurveysController {
       id: newSurvey.id,
       title: newSurvey.title,
       description: newSurvey.description,
-      status: newSurvey.status,
       visibility: newSurvey.visibility,
     };
   }
@@ -123,7 +117,6 @@ export class SurveysController {
       id: survey.id,
       title: survey.title,
       description: survey.description,
-      status: survey.status,
       visibility: survey.visibility,
     };
   }
@@ -143,7 +136,6 @@ export class SurveysController {
       id: updatedSurvey.id,
       title: updatedSurvey.title,
       description: updatedSurvey.description,
-      status: updatedSurvey.status,
       visibility: updatedSurvey.visibility,
     };
   }

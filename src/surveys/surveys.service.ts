@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Survey, SurveyStatus, SurveyVisibility } from './surveys.entity';
+import { Survey, SurveyVisibility } from './surveys.entity';
 import { Repository } from 'typeorm';
 import {
   NewPollQuestionDto,
@@ -33,7 +33,6 @@ interface PartialSurveyDto {
   title?: string;
   description?: string;
   associationId?: string;
-  status?: SurveyStatus;
   visibility?: SurveyVisibility;
 }
 
@@ -61,7 +60,6 @@ export class SurveysService {
       title: survey.title,
       description: survey.description,
       visibility: survey.visibility,
-      status: SurveyStatus.NOT_STARTED,
       association: { id: survey.associationId },
     });
     const surveyId = result.generatedMaps[0].id;
