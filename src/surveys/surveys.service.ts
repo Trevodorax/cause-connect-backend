@@ -125,6 +125,18 @@ export class SurveysService {
     return updatedSurvey;
   }
 
+  // replace a survey by id
+  async replace(
+    id: string,
+    survey: CreateSurveyDto,
+  ): Promise<FullSurveyResponse> {
+    await this.delete(id);
+
+    const recreated = await this.create(survey);
+
+    return this.findFullById(recreated.id);
+  }
+
   // delete a survey by id
   async delete(id: string): Promise<Survey> {
     const survey = await this.findById(id);

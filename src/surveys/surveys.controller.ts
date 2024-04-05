@@ -4,8 +4,8 @@ import {
   Delete,
   Get,
   Param,
-  Patch,
   Post,
+  Put,
 } from '@nestjs/common';
 import { SurveysService } from './surveys.service';
 import { GetUser } from 'src/auth/decorators/user.decorator';
@@ -36,14 +36,6 @@ const CreateSurveySchema = z.object({
   description: z.string(),
   visibility: z.enum([SurveyVisibility.PUBLIC, SurveyVisibility.PRIVATE]),
   questions: z.array(NewPollQuestionSchema.omit({ surveyId: true })),
-});
-
-const UpdateSurveySchema = z.object({
-  title: z.string().optional(),
-  description: z.string().optional(),
-  visibility: z
-    .enum([SurveyVisibility.PUBLIC, SurveyVisibility.PRIVATE])
-    .optional(),
 });
 
 const AnswerSurveySchema = z.object({
@@ -122,22 +114,18 @@ export class SurveysController {
   }
 
   @Roles(UserRole.ADMIN)
-  @Patch(':surveyId')
+  @Put(':surveyId')
   async updateSurvey(
     @Param('surveyId') surveyId: string,
-    @Body() survey: Partial<z.infer<typeof UpdateSurveySchema>>,
-  ): Promise<SurveyResponse> {
-    const validSurvey = UpdateSurveySchema.parse(survey);
-    const updatedSurvey = await this.surveyService.update(
-      surveyId,
-      validSurvey,
-    );
-    return {
-      id: updatedSurvey.id,
-      title: updatedSurvey.title,
-      description: updatedSurvey.description,
-      visibility: updatedSurvey.visibility,
-    };
+    @Body() survey: Partial<z.infer<typeof CreateSurveySchema>>,
+    @GetUser() user: User,
+  ): Promise<FullSurveyResponse> {
+    const validSurvey = CreateSurveySchema.parse(survey);
+    const updatedSurvey = await this.surveyService.replace(surveyId, {
+      ...validSurvey,
+      associationId: user.association.id,
+    });
+    return updatedSurvey;
   }
 
   @Post(':surveyId/answers')
