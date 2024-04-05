@@ -38,6 +38,21 @@ export interface TaskResponse {
 @Controller('tasks')
 export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
+  // get all tasks assigned to me
+  @Roles(UserRole.ADMIN, UserRole.INTERNAL)
+  @Get('me')
+  async getMyTasks(@GetUser() user: User): Promise<TaskResponse[]> {
+    const tasks = await this.tasksService.getUserTasks(user.id);
+    return tasks.map((task) => ({
+      id: task.id,
+      title: task.title,
+      description: task.description,
+      status: task.status,
+      deadline: task.deadline,
+      responsibleUser: task.user,
+    }));
+  }
+
   // get one task by id
   @Roles(UserRole.ADMIN, UserRole.INTERNAL)
   @Get(':id')
@@ -90,21 +105,6 @@ export class TasksController {
       deadline: task.deadline,
       responsibleUser: task.user,
     };
-  }
-
-  // get all tasks assigned to me
-  @Roles(UserRole.ADMIN, UserRole.INTERNAL)
-  @Get('me')
-  async getMyTasks(@GetUser() user: User): Promise<TaskResponse[]> {
-    const tasks = await this.tasksService.getUserTasks(user.id);
-    return tasks.map((task) => ({
-      id: task.id,
-      title: task.title,
-      description: task.description,
-      status: task.status,
-      deadline: task.deadline,
-      responsibleUser: task.user,
-    }));
   }
 
   @Roles(UserRole.ADMIN, UserRole.INTERNAL)

@@ -199,7 +199,7 @@ export class ProjectsService {
       throw new NotFoundException('Project not found.');
     }
 
-    if (project.association.id !== userAssociationId) {
+    if (project.association?.id !== userAssociationId) {
       throw new UnauthorizedException('This is not your association');
     }
 
