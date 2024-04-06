@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post } from '@nestjs/common';
 import { ChatbotService } from './chatbot.service';
 import { GetUser } from 'src/auth/decorators/user.decorator';
 import { User } from 'src/users/users.entity';
@@ -25,5 +25,10 @@ export class ChatbotController {
   @Delete('reset')
   async resetConversation(@GetUser() user: User) {
     return this.chatbotService.resetConversation(user.id);
+  }
+
+  @Get('conversation')
+  async getConversation(@GetUser() user: User) {
+    return this.chatbotService.getUserConversation(user.id);
   }
 }

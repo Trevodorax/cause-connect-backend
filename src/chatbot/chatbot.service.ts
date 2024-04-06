@@ -97,7 +97,7 @@ export class ChatbotService {
     return deletedConversation;
   }
 
-  private getUserConversation = async (
+  getUserConversation = async (
     userId: string,
   ): Promise<ChatbotConversation> => {
     const conversation = await this.chatbotConversationRepository.findOne({
