@@ -48,6 +48,7 @@ export class TasksController {
   @Get('me')
   async getMyTasks(@GetUser() user: User): Promise<TaskWithProjectResponse[]> {
     const tasks = await this.tasksService.getUserTasks(user.id);
+    console.log(tasks);
     return tasks.map((task) => ({
       id: task.id,
       title: task.title,
