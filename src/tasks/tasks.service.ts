@@ -73,7 +73,7 @@ export class TasksService {
   async getTaskById(id: string): Promise<Task> {
     const task = await this.tasksRepository.findOne({
       where: { id },
-      relations: ['user'],
+      relations: ['user', 'project'],
     });
     if (!task) {
       throw new NotFoundException('Task not found');
@@ -157,7 +157,7 @@ export class TasksService {
   async getUserTasks(userId: string): Promise<Task[]> {
     return this.tasksRepository.find({
       where: { user: { id: userId } },
-      relations: ['user'],
+      relations: ['user', 'project'],
     });
   }
 }

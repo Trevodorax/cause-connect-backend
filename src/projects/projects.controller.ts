@@ -22,7 +22,7 @@ const NewProjectSchema = z.object({
   endTime: z.coerce.date(),
 });
 
-interface ProjectResponse {
+export interface ProjectResponse {
   id: string;
   name: string;
   description: string;

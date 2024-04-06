@@ -14,6 +14,7 @@ import { Roles } from 'src/auth/rules.decorator';
 import { User, UserRole } from 'src/users/users.entity';
 import { GetUser } from 'src/auth/decorators/user.decorator';
 import { UserResponse } from 'src/users/users.controller';
+import { ProjectResponse } from 'src/projects/projects.controller';
 
 const PartialTaskSchema = z.object({
   title: z.string().optional(),
@@ -35,13 +36,17 @@ export interface TaskResponse {
   responsibleUser: UserResponse | null;
 }
 
+export interface TaskWithProjectResponse extends TaskResponse {
+  project: ProjectResponse;
+}
+
 @Controller('tasks')
 export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
   // get all tasks assigned to me
   @Roles(UserRole.ADMIN, UserRole.INTERNAL)
   @Get('me')
-  async getMyTasks(@GetUser() user: User): Promise<TaskResponse[]> {
+  async getMyTasks(@GetUser() user: User): Promise<TaskWithProjectResponse[]> {
     const tasks = await this.tasksService.getUserTasks(user.id);
     return tasks.map((task) => ({
       id: task.id,
@@ -50,13 +55,20 @@ export class TasksController {
       status: task.status,
       deadline: task.deadline,
       responsibleUser: task.user,
+      project: {
+        id: task.project.id,
+        name: task.project.name,
+        description: task.project.description,
+        startTime: task.project.startTime,
+        endTime: task.project.endTime,
+      },
     }));
   }
 
   // get one task by id
   @Roles(UserRole.ADMIN, UserRole.INTERNAL)
   @Get(':id')
-  async getTaskById(@Param('id') id: string): Promise<TaskResponse> {
+  async getTaskById(@Param('id') id: string): Promise<TaskWithProjectResponse> {
     const task = await this.tasksService.getTaskById(id);
     return {
       id: task.id,
@@ -65,6 +77,13 @@ export class TasksController {
       status: task.status,
       deadline: task.deadline,
       responsibleUser: task.user,
+      project: {
+        id: task.project.id,
+        name: task.project.name,
+        description: task.project.description,
+        startTime: task.project.startTime,
+        endTime: task.project.endTime,
+      },
     };
   }
 
