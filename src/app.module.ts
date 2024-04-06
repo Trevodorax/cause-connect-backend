@@ -17,6 +17,7 @@ import { EventsModule } from './events/events.module';
 import { MeetingsModule } from './meetings/meetings.module';
 import { FilesModule } from './files/files.module';
 import { DocumentsModule } from './documents/documents.module';
+import { ChatbotModule } from './chatbot/chatbot.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { DocumentsModule } from './documents/documents.module';
     MeetingsModule,
     FilesModule,
     DocumentsModule,
+    ChatbotModule,
   ],
   providers: [AppService, AuthService],
 })

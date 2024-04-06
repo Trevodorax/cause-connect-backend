@@ -120,28 +120,20 @@ export class AssociationsService {
       throw new NotFoundException('Association not found');
     }
 
-    console.log('a');
-
     const result = await this.associationRepository.update(id, association);
     if (!result.affected) {
       throw new InternalServerErrorException('Failed to update association');
     }
 
-    console.log('a');
-
     const modifiedAssociation = await this.associationRepository.findOneBy({
       id,
     });
-
-    console.log('a');
 
     if (!modifiedAssociation) {
       throw new InternalServerErrorException(
         'Failed to find modified association',
       );
     }
-
-    console.log('a');
 
     return modifiedAssociation;
   }
