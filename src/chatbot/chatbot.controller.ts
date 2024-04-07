@@ -17,7 +17,8 @@ interface ChatbotConversationResponse {
 }
 
 interface ChatbotAnswerResponse {
-  message: string;
+  question: ChatbotConversationMessageResponse;
+  answer: ChatbotConversationMessageResponse;
 }
 
 @Controller('chatbot')
@@ -35,7 +36,18 @@ export class ChatbotController {
     });
 
     return {
-      message: answer,
+      question: {
+        id: answer.question.id,
+        role: answer.question.role,
+        content: answer.question.content,
+        createdAt: answer.question.createdAt,
+      },
+      answer: {
+        id: answer.answer.id,
+        role: answer.answer.role,
+        content: answer.answer.content,
+        createdAt: answer.answer.createdAt,
+      },
     };
   }
 

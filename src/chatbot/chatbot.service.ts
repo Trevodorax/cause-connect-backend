@@ -27,8 +27,11 @@ export class ChatbotService {
     private usersService: UsersService,
     private eventsService: EventsService,
   ) {}
-  async sendQuestion(dto: SendQuestionDto): Promise<string> {
-    const newMessage = await this.addUserMessage(
+  async sendQuestion(dto: SendQuestionDto): Promise<{
+    question: ChatbotConversationMessage;
+    answer: ChatbotConversationMessage;
+  }> {
+    const question = await this.addUserMessage(
       dto.senderId,
       ChatbotChatRole.USER,
       dto.newMessage,
@@ -40,16 +43,20 @@ export class ChatbotService {
 
     const response = await chain.invoke({
       ...context,
-      input: newMessage.content,
+      input: question.content,
     });
+    const stringResponse = this.responseToString(response);
 
-    await this.addUserMessage(
+    const answer = await this.addUserMessage(
       dto.senderId,
       ChatbotChatRole.ASSISTANT,
-      this.responseToString(response),
+      stringResponse,
     );
 
-    return this.responseToString(response);
+    return {
+      question,
+      answer,
+    };
   }
 
   async addUserMessage(
@@ -102,11 +109,14 @@ export class ChatbotService {
   ): Promise<ChatbotConversation> => {
     const conversation = await this.chatbotConversationRepository.findOne({
       where: { user: { id: userId } },
-      relations: ['messages'],
     });
 
     if (conversation) {
-      return conversation;
+      const messages = await this.getUserMessages(userId);
+      return {
+        ...conversation,
+        messages,
+      };
     }
 
     const createdConversation = this.chatbotConversationRepository.create({
@@ -114,7 +124,13 @@ export class ChatbotService {
       messages: [],
     });
 
-    return this.chatbotConversationRepository.save(createdConversation);
+    const savedConversation =
+      await this.chatbotConversationRepository.save(createdConversation);
+
+    return {
+      ...savedConversation,
+      messages: [],
+    };
   };
 
   private responseToString = (response: Uint8Array) =>
