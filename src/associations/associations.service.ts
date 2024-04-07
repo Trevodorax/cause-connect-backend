@@ -10,6 +10,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { UsersService } from 'src/users/users.service';
 import { UserRole } from 'src/users/users.entity';
 import { FilesAzureService } from 'src/files/files.azure.service';
+import { SettingsService } from 'src/settings/settings.service';
 
 interface NewAssociationDto {
   name: string;
@@ -38,6 +39,7 @@ export class AssociationsService {
     private associationRepository: Repository<Association>,
     private userService: UsersService,
     private filesService: FilesAzureService,
+    private settingsService: SettingsService,
   ) {}
 
   async createAssociationWithAdmin(
@@ -77,6 +79,10 @@ export class AssociationsService {
     }
     const result = await this.associationRepository.insert(association);
     const associationId = result.generatedMaps[0].id;
+
+    await this.settingsService.createSettings({
+      associationId,
+    });
     return this.associationRepository.findOneBy({ id: associationId });
   }
 
