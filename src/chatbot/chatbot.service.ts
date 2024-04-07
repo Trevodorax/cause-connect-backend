@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { CHAT_TEMPLATE, openAIConf, VercelChatRole } from './utils';
+import { CHAT_TEMPLATE, openAIConf, ChatbotChatRole } from './constants';
 import { PromptTemplate } from '@langchain/core/prompts';
 import { ChatOpenAI } from '@langchain/openai';
 import { HttpResponseOutputParser } from 'langchain/output_parsers';
@@ -30,7 +30,7 @@ export class ChatbotService {
   async sendQuestion(dto: SendQuestionDto): Promise<string> {
     const newMessage = await this.addUserMessage(
       dto.senderId,
-      VercelChatRole.USER,
+      ChatbotChatRole.USER,
       dto.newMessage,
     );
 
@@ -45,7 +45,7 @@ export class ChatbotService {
 
     await this.addUserMessage(
       dto.senderId,
-      VercelChatRole.ASSISTANT,
+      ChatbotChatRole.ASSISTANT,
       this.responseToString(response),
     );
 
@@ -54,7 +54,7 @@ export class ChatbotService {
 
   async addUserMessage(
     userId: string,
-    role: VercelChatRole,
+    role: ChatbotChatRole,
     content: string,
   ): Promise<ChatbotConversationMessage> {
     const conversation = await this.getUserConversation(userId);

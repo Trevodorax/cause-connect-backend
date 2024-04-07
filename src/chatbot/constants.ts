@@ -1,21 +1,9 @@
-export function customMessage(
-  statusCode: number,
-  message: string,
-  data = {},
-): object {
-  return {
-    statusCode: statusCode,
-    message: [message],
-    data: data,
-  };
-}
-
 export enum openAIConf {
   GPT_3_5_TURBO_1106 = 'gpt-3.5-turbo-1106',
   BASIC_CHAT_OPENAI_TEMPERATURE = 0.8,
 }
 
-export enum VercelChatRole {
+export enum ChatbotChatRole {
   USER = 'user',
   ASSISTANT = 'assistant',
 }
