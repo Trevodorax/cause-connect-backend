@@ -109,7 +109,7 @@ export class TasksController {
   async updateTask(
     @Param('id') id: string,
     @GetUser() user: User,
-    body: z.infer<typeof PartialTaskSchema>,
+    @Body() body: z.infer<typeof PartialTaskSchema>,
   ): Promise<TaskResponse> {
     const validBody = PartialTaskSchema.parse(body);
     const task = await this.tasksService.updateTaskById(
