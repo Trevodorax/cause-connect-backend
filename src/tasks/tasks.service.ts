@@ -27,7 +27,7 @@ interface PartialTaskDto {
   status?: TaskStatus;
   deadline?: Date;
   projectId?: string;
-  userId?: string;
+  responsibleUserId?: string;
 }
 
 @Injectable()
@@ -115,8 +115,8 @@ export class TasksService {
       task.project = project;
     }
 
-    if (dto.userId) {
-      const user = await this.usersService.findOneById(dto.userId);
+    if (dto.responsibleUserId) {
+      const user = await this.usersService.findOneById(dto.responsibleUserId);
       if (!user) {
         throw new NotFoundException('User not found');
       }
@@ -134,6 +134,14 @@ export class TasksService {
 
     if (dto.status) {
       task.status = dto.status;
+    }
+
+    if (dto.deadline) {
+      task.deadline = dto.deadline;
+    }
+
+    if (dto.responsibleUserId) {
+      this.assignUserToTask({ userId: dto.responsibleUserId, taskId: id });
     }
 
     await this.tasksRepository.save(task);

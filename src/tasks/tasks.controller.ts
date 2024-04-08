@@ -48,7 +48,6 @@ export class TasksController {
   @Get('me')
   async getMyTasks(@GetUser() user: User): Promise<TaskWithProjectResponse[]> {
     const tasks = await this.tasksService.getUserTasks(user.id);
-    console.log(tasks);
     return tasks.map((task) => ({
       id: task.id,
       title: task.title,
@@ -110,7 +109,7 @@ export class TasksController {
     @Param('id') id: string,
     @GetUser() user: User,
     @Body() body: z.infer<typeof PartialTaskSchema>,
-  ): Promise<TaskResponse> {
+  ): Promise<TaskWithProjectResponse> {
     const validBody = PartialTaskSchema.parse(body);
     const task = await this.tasksService.updateTaskById(
       id,
@@ -124,6 +123,13 @@ export class TasksController {
       status: task.status,
       deadline: task.deadline,
       responsibleUser: task.user,
+      project: {
+        id: task.project.id,
+        name: task.project.name,
+        description: task.project.description,
+        startTime: task.project.startTime,
+        endTime: task.project.endTime,
+      },
     };
   }
 
