@@ -182,12 +182,15 @@ export class ProjectsController {
       description: task.description,
       status: task.status,
       deadline: task.deadline,
-      responsibleUser: {
-        id: task.user.id,
-        email: task.user.email,
-        fullName: task.user.fullName,
-        role: task.user.role,
-      },
+      responsibleUser:
+        task.user !== null
+          ? {
+              id: task.user.id,
+              email: task.user.email,
+              fullName: task.user.fullName,
+              role: task.user.role,
+            }
+          : null,
     }));
   }
 
