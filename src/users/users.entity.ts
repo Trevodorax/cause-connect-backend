@@ -10,6 +10,7 @@ import {
   ManyToMany,
   JoinTable,
   OneToOne,
+  CreateDateColumn,
 } from 'typeorm';
 import { EventUserEnrollment } from 'src/events/entities/event-user-enrollments';
 import { DocumentAccess } from 'src/documents/entities/document-access.entity';
@@ -62,4 +63,7 @@ export class User {
     nullable: true,
   })
   chatbotConversation?: ChatbotConversation;
+
+  @CreateDateColumn()
+  createdAt: Date;
 }

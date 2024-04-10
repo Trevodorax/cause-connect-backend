@@ -4,6 +4,7 @@ import {
   PrimaryGeneratedColumn,
   ManyToOne,
   OneToMany,
+  CreateDateColumn,
 } from 'typeorm';
 import { Association } from 'src/associations/associations.entity';
 import { PollQuestion } from 'src/poll-question/entities/poll-question.entity';
@@ -38,4 +39,7 @@ export class Survey {
 
   @OneToMany(() => PollQuestion, (question) => question.survey)
   questions: PollQuestion[];
+
+  @CreateDateColumn()
+  createdAt: Date;
 }

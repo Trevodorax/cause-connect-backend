@@ -4,6 +4,7 @@ import {
   PrimaryGeneratedColumn,
   ManyToOne,
   OneToMany,
+  CreateDateColumn,
 } from 'typeorm';
 import { Association } from 'src/associations/associations.entity';
 import { Ballot } from './ballots.entity';
@@ -56,4 +57,7 @@ export class Vote {
 
   @Column({ default: 1 })
   currentBallot: number;
+
+  @CreateDateColumn()
+  createdAt: Date;
 }

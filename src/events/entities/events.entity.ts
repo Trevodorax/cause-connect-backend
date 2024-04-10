@@ -5,6 +5,7 @@ import {
   PrimaryGeneratedColumn,
   ManyToOne,
   OneToMany,
+  CreateDateColumn,
 } from 'typeorm';
 import { EventUserEnrollment } from './event-user-enrollments';
 
@@ -44,4 +45,7 @@ export class Event {
 
   @ManyToOne(() => Association, (association) => association.events)
   association: Association;
+
+  @CreateDateColumn()
+  createdAt: Date;
 }

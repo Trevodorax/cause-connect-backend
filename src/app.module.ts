@@ -19,6 +19,7 @@ import { FilesModule } from './files/files.module';
 import { DocumentsModule } from './documents/documents.module';
 import { ChatbotModule } from './chatbot/chatbot.module';
 import { SettingsModule } from './settings/settings.module';
+import { FeedModule } from './feed/feed.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { SettingsModule } from './settings/settings.module';
     DocumentsModule,
     ChatbotModule,
     SettingsModule,
+    FeedModule,
   ],
   providers: [AppService, AuthService],
 })
