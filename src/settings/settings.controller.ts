@@ -11,6 +11,13 @@ import { Roles } from 'src/auth/rules.decorator';
 import { User, UserRole } from 'src/users/users.entity';
 import { GetUser } from 'src/auth/decorators/user.decorator';
 
+interface PaymentDataResponse {
+  id: string;
+  stripeAccountId: string;
+  stripePlanId: string;
+  stripeSessionInProgress: boolean;
+  contributionPrice: number;
+}
 interface ThemeResponse {
   id: string;
   color: string;
@@ -19,25 +26,25 @@ interface ThemeResponse {
 
 interface SettingsResponse {
   id: string;
+  paymentData: PaymentDataResponse;
   theme: ThemeResponse;
-  contributionPrice: number;
-  contributionInterval: number;
 }
 
-const UpdateSettingsSchema = z.object({
+const UpdatePaymentDataSchema = z.object({
+  stripeAccountId: z.string().optional(),
+  stripePlanId: z.string().optional(),
+  stripeSessionInProgress: z.boolean().optional(),
   contributionPrice: z.number().optional(),
-  contributionInterval: z.number().optional(),
-  theme: z
-    .object({
-      color: z.string().optional(),
-      font: z.string().optional(),
-    })
-    .optional(),
 });
 
 const UpdateThemeSchema = z.object({
   color: z.string().optional(),
   font: z.string().optional(),
+});
+
+const UpdateSettingsSchema = z.object({
+  paymentData: UpdatePaymentDataSchema.optional(),
+  theme: UpdateThemeSchema.optional(),
 });
 
 @Controller('settings')
@@ -46,7 +53,9 @@ export class SettingsController {
 
   @Roles(UserRole.ADMIN)
   @Get()
-  async getSettings(@GetUser() authenticatedUser: User): Promise<SettingsResponse> {
+  async getSettings(
+    @GetUser() authenticatedUser: User,
+  ): Promise<SettingsResponse> {
     return this.settingsService.getSettings(authenticatedUser.association.id);
   }
 
@@ -57,7 +66,10 @@ export class SettingsController {
     @Body() body: z.infer<typeof UpdateSettingsSchema>,
   ): Promise<SettingsResponse> {
     const validBody = UpdateSettingsSchema.parse(body);
-    const settings = this.settingsService.updateSettings(authenticatedUser.association.id, validBody);
+    const settings = this.settingsService.updateSettings(
+      authenticatedUser.association.id,
+      validBody,
+    );
     if (!settings) {
       throw new InternalServerErrorException('Failed to update settings');
     }
@@ -78,11 +90,42 @@ export class SettingsController {
     @Body() body: z.infer<typeof UpdateThemeSchema>,
   ): Promise<ThemeResponse> {
     const validBody = UpdateThemeSchema.parse(body);
-    const theme = this.settingsService.updateTheme(authenticatedUser.association.id, validBody);
+    const theme = this.settingsService.updateTheme(
+      authenticatedUser.association.id,
+      validBody,
+    );
     if (!theme) {
       throw new InternalServerErrorException('Failed to update theme');
     }
 
     return theme;
+  }
+
+  @Roles(UserRole.ADMIN)
+  @Get('payment')
+  async getPaymentData(
+    @GetUser() authenticatedUser: User,
+  ): Promise<PaymentDataResponse> {
+    return this.settingsService.getPaymentData(
+      authenticatedUser.association.id,
+    );
+  }
+
+  @Roles(UserRole.ADMIN)
+  @Patch('payment')
+  async updatePaymentData(
+    @GetUser() authenticatedUser: User,
+    @Body() body: z.infer<typeof UpdatePaymentDataSchema>,
+  ): Promise<PaymentDataResponse> {
+    const validBody = UpdatePaymentDataSchema.parse(body);
+    const paymentData = this.settingsService.updatePaymentData(
+      authenticatedUser.association.id,
+      validBody,
+    );
+    if (!paymentData) {
+      throw new InternalServerErrorException('Failed to update payment data');
+    }
+
+    return paymentData;
   }
 }

@@ -20,6 +20,7 @@ import { DocumentsModule } from './documents/documents.module';
 import { ChatbotModule } from './chatbot/chatbot.module';
 import { SettingsModule } from './settings/settings.module';
 import { FeedModule } from './feed/feed.module';
+import { PaymentModule } from './payment/payment.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { FeedModule } from './feed/feed.module';
     ChatbotModule,
     SettingsModule,
     FeedModule,
+    PaymentModule,
   ],
   providers: [AppService, AuthService],
 })

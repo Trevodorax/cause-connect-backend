@@ -1,11 +1,6 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  OneToOne,
-  JoinColumn,
-} from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, OneToOne, JoinColumn } from 'typeorm';
 import { Theme } from './themes.entity';
+import { PaymentData } from './payment.entity';
 import { Association } from 'src/associations/associations.entity';
 
 @Entity()
@@ -13,11 +8,9 @@ export class Settings {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ default: null })
-  contributionPrice: number;
-
-  @Column({ default: null })
-  contributionInterval: number;
+  @OneToOne(() => PaymentData, { onDelete: 'CASCADE' })
+  @JoinColumn()
+  paymentData: PaymentData;
 
   @OneToOne(() => Theme, { onDelete: 'CASCADE' })
   @JoinColumn()

@@ -39,6 +39,7 @@
     "nodemailer": "^6.9.13",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",
+    "stripe": "^14.24.0",
     "target-hunt-bridge": "^1.0.23",
     "typeorm": "^0.3.20",
     "uuid": "^9.0.1",

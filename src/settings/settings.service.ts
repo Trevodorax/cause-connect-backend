@@ -8,27 +8,32 @@ import { Repository } from 'typeorm';
 import { Theme } from './entities/themes.entity';
 import { Settings } from './entities/settings.entity';
 import { Association } from 'src/associations/associations.entity';
+import { PaymentData } from './entities/payment.entity';
 
+interface UpdatePaymentDataDto {
+  stripeAccountId?: string;
+  stripePlanId?: string;
+  contributionPrice?: number;
+}
 interface UpdateThemeDto {
   color?: string;
   font?: string;
 }
 
 interface NewSettingsDto {
-  contributionPrice?: number;
-  contributionInterval?: number;
   associationId: string;
 }
 
 interface UpdateSettingsDto {
-  contributionPrice?: number;
-  contributionInterval?: number;
+  paymentData?: UpdatePaymentDataDto;
   theme?: UpdateThemeDto;
 }
 
 @Injectable()
 export class SettingsService {
   constructor(
+    @InjectRepository(PaymentData)
+    private paymentDataRepository: Repository<PaymentData>,
     @InjectRepository(Theme)
     private themeRepository: Repository<Theme>,
     @InjectRepository(Settings)
@@ -45,6 +50,12 @@ export class SettingsService {
       throw new NotFoundException('Association not found');
     }
 
+    const paymentData = await this.paymentDataRepository.insert({});
+    if (!paymentData) {
+      throw new InternalServerErrorException('Failed to create payment data');
+    }
+    const paymentDataId = paymentData.generatedMaps[0].id;
+
     const theme = await this.themeRepository.insert({});
     if (!theme) {
       throw new InternalServerErrorException('Failed to create theme');
@@ -52,14 +63,9 @@ export class SettingsService {
     const themeId = theme.generatedMaps[0].id;
 
     const settings = new Settings();
+    settings.paymentData = { id: paymentDataId } as PaymentData;
     settings.theme = { id: themeId } as Theme;
     settings.association = { id: data.associationId } as Association;
-    if (data.contributionPrice) {
-      settings.contributionPrice = data.contributionPrice;
-    }
-    if (data.contributionInterval) {
-      settings.contributionInterval = data.contributionInterval;
-    }
     const createdSettings = await this.settingsRepository.insert(settings);
     const settingsId = createdSettings.generatedMaps[0].id;
 
@@ -76,7 +82,7 @@ export class SettingsService {
 
     const settings = await this.settingsRepository.findOne({
       where: { association: { id: associationId } },
-      relations: ['theme'],
+      relations: ['paymentData', 'theme'],
     });
     if (!settings) {
       throw new NotFoundException('Settings not found');
@@ -98,7 +104,6 @@ export class SettingsService {
 
     const settings = await this.settingsRepository.findOne({
       where: { association: { id: associationId } },
-      relations: ['theme'],
     });
     if (!settings) {
       throw new NotFoundException('Settings not found');
@@ -180,5 +185,64 @@ export class SettingsService {
     }
 
     return modifiedTheme;
+  }
+
+  async getPaymentData(associationId: string): Promise<PaymentData> {
+    const association = this.associationRepository.findOne({
+      where: { id: associationId },
+    });
+    if (!association) {
+      throw new NotFoundException('Association not found');
+    }
+
+    const settings = await this.settingsRepository.findOne({
+      where: { association: { id: associationId } },
+      relations: ['paymentData'],
+    });
+    if (!settings) {
+      throw new NotFoundException('Settings not found');
+    }
+
+    return settings.paymentData;
+  }
+
+  async updatePaymentData(
+    associationId: string,
+    data: UpdatePaymentDataDto,
+  ): Promise<PaymentData> {
+    const association = this.associationRepository.findOne({
+      where: { id: associationId },
+    });
+    if (!association) {
+      throw new NotFoundException('Association not found');
+    }
+
+    const settings = await this.settingsRepository.findOne({
+      where: { association: { id: associationId } },
+      relations: ['paymentData'],
+    });
+    if (!settings) {
+      throw new NotFoundException('Settings not found');
+    }
+
+    const result = await this.paymentDataRepository.update(
+      { id: settings.paymentData.id },
+      data,
+    );
+    if (!result.affected) {
+      throw new InternalServerErrorException('Failed to update payment data');
+    }
+
+    const modifiedPaymentData = await this.paymentDataRepository.findOne({
+      where: { id: settings.paymentData.id },
+    });
+
+    if (!modifiedPaymentData) {
+      throw new InternalServerErrorException(
+        'Failed to find modified payment data',
+      );
+    }
+
+    return modifiedPaymentData;
   }
 }
