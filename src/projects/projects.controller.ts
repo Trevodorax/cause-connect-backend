@@ -189,6 +189,7 @@ export class ProjectsController {
               email: task.user.email,
               fullName: task.user.fullName,
               role: task.user.role,
+              stripeCustomerId: task.user.stripeCustomerId,
             }
           : null,
     }));

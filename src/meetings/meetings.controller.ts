@@ -191,6 +191,7 @@ export class MeetingsController {
       email: participant.email,
       fullName: participant.fullName,
       role: participant.role,
+      stripeCustomerId: participant.stripeCustomerId,
     }));
   }
 
@@ -236,6 +237,7 @@ export class MeetingsController {
       email: participant.email,
       fullName: participant.fullName,
       role: participant.role,
+      stripeCustomerId: participant.stripeCustomerId,
     }));
   }
 }

@@ -144,6 +144,7 @@ export class EventsController {
       email: participant.email,
       fullName: participant.fullName,
       role: participant.role,
+      stripeCustomerId: participant.stripeCustomerId,
     }));
   }
 
@@ -173,6 +174,7 @@ export class EventsController {
       email: user.email,
       fullName: user.fullName,
       role: user.role,
+      stripeCustomerId: user.stripeCustomerId,
     }));
   }
 }
