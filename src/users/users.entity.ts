@@ -43,6 +43,9 @@ export class User {
   @Column({ type: 'simple-enum', enum: UserRole })
   role: UserRole;
 
+  @Column({ default: null })
+  stripeCustomerId: string;
+
   @ManyToOne(() => Association, (association) => association.members)
   association: Association;
 

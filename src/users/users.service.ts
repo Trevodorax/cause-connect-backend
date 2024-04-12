@@ -1,5 +1,6 @@
 import {
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
   UnauthorizedException,
   UnprocessableEntityException,
@@ -18,6 +19,8 @@ import { Association } from 'src/associations/associations.entity';
 import { EmailService } from 'src/email/email.service';
 import { v4 as uuidv4 } from 'uuid';
 import { PollOption } from 'src/poll-question/entities/poll-option.entity';
+import { PaymentService } from 'src/payment/payment.service';
+import { SettingsService } from 'src/settings/settings.service';
 
 @Injectable()
 export class UsersService {
@@ -27,6 +30,8 @@ export class UsersService {
     @InjectRepository(Association)
     private associationRepository: Repository<Association>,
     private emailService: EmailService,
+    private paymentService: PaymentService,
+    private settingsService: SettingsService,
   ) {}
   async resetPassword(dto: ResetPasswordDto): Promise<User> {
     const user = await this.userRepository.findOne({
@@ -86,12 +91,30 @@ export class UsersService {
       throw new NotFoundException('Association not found');
     }
 
+    // get stripe account for the association
+    const settings = await this.settingsService.getSettings(user.associationId);
+    if (!settings.paymentData?.stripeAccountId) {
+      throw new NotFoundException('No Stripe account found for this association');
+    }
+
+    let stripeCustomer;
+    try {
+      stripeCustomer = await this.paymentService.createCustomer(
+        settings.paymentData.stripeAccountId,
+        user.associationId,
+        { email: user.email },
+      );
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to create customer');
+    }
+
     // insert user into the database
     const result = await this.userRepository.insert({
       email: user.email,
       fullName: user.fullName,
       role: user.role,
       association: association,
+      stripeCustomerId: stripeCustomer?.id,
     });
     const userId = result.generatedMaps[0].id;
 

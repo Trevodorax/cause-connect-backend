@@ -18,6 +18,10 @@ interface UpdateProductDto {
   constributionPrice: number;
 }
 
+interface CreateCustomerDto {
+  email: string;
+}
+
 @Injectable()
 export class PaymentService {
   private stripe: Stripe;
@@ -183,5 +187,39 @@ export class PaymentService {
         },
       );
     });
+  }
+
+  async createCustomer(
+    accountId: string,
+    associationId: string,
+    createCustomerBody: CreateCustomerDto,
+  ): Promise<Stripe.Customer> {
+    try {
+      const settings = await this.settingsRepository.findOne({
+        where: { association: { id: associationId } },
+        relations: ['paymentData'],
+      });
+      if (!settings?.paymentData?.stripeAccountId) {
+        throw new NotFoundException('No Stripe account found for this association');
+      }
+      if (settings.paymentData.stripeAccountId !== accountId) {
+        throw new UnauthorizedException('You are not allowed to access this account');
+      }
+
+      return await this.stripe.customers.create(
+        {
+          email: createCustomerBody.email,
+        },
+        {
+          stripeAccount: accountId,
+        },
+      );
+    } catch (error) {
+      console.error(
+        'An error occurred when calling the Stripe API to create a customer',
+        error,
+      );
+      throw new InternalServerErrorException('Failed to create customer');
+    }
   }
 }
