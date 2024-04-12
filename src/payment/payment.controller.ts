@@ -6,12 +6,12 @@ import { Roles } from 'src/auth/rules.decorator';
 import { User, UserRole } from 'src/users/users.entity';
 import { GetUser } from 'src/auth/decorators/user.decorator';
 
-export interface AccountWithPlanResponse {
+export interface AccountWithProductResponse {
   account: Stripe.Account;
-  plan: Stripe.Plan;
+  product: Stripe.Product;
 }
 
-const createAccountWithPlanBodySchema = z.object({
+const createAccountWithProductBodySchema = z.object({
   email: z.string().email(),
 });
 
@@ -21,11 +21,11 @@ export class PaymentController {
 
   @Roles(UserRole.ADMIN)
   @Post('account')
-  async createAccountWithPlan(
-    @Body() createAccountWithPlanBody: z.infer<typeof createAccountWithPlanBodySchema>,
-  ): Promise<AccountWithPlanResponse> {
-    const validBody = createAccountWithPlanBodySchema.parse(createAccountWithPlanBody);
-    return this.paymentService.createAccountWithPlan(validBody);
+  async createAccountWithProduct(
+    @Body() createAccountWithProductBody: z.infer<typeof createAccountWithProductBodySchema>,
+  ): Promise<AccountWithProductResponse> {
+    const validBody = createAccountWithProductBodySchema.parse(createAccountWithProductBody);
+    return this.paymentService.createAccountWithProduct(validBody);
   }
 
   @Roles(UserRole.ADMIN)

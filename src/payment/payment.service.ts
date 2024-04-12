@@ -8,10 +8,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Settings } from 'src/settings/entities/settings.entity';
 import Stripe from 'stripe';
-import { AccountWithPlanResponse } from './payment.controller';
+import { AccountWithProductResponse } from './payment.controller';
 
-interface CreateAccountWithPlanDto {
+interface CreateAccountWithProductDto {
   email: string;
+}
+
+interface UpdateProductDto {
+  constributionPrice: number;
 }
 
 @Injectable()
@@ -90,24 +94,94 @@ export class PaymentService {
     return this.stripe.accounts.retrieve(settings.paymentData.stripeAccountId);
   }
 
-  async createAccountWithPlan(
-    createAccountWithPlanBody: CreateAccountWithPlanDto,
-  ): Promise<AccountWithPlanResponse> {
-    const account = await this.createAccount(createAccountWithPlanBody.email);
+  async createAccountWithProduct(
+    createAccountWithProductBody: CreateAccountWithProductDto,
+  ): Promise<AccountWithProductResponse> {
+    const account = await this.createAccount(createAccountWithProductBody.email);
 
-    const plan = await this.stripe.plans.create(
+    const product = await this.stripe.products.create(
       {
-        amount: 0,
-        currency: 'eur',
-        interval: 'month',
-        product: { name: 'Contribution' },
+        name: 'Contribution',
       },
-      { stripeAccount: account.id },
+      {
+        stripeAccount: account.id,
+      },
+    );
+
+    await this.stripe.prices.create(
+      {
+        unit_amount: 0,
+        currency: 'eur',
+        recurring: { interval: 'month' },
+        product: product.id,
+      },
+      {
+        stripeAccount: account.id,
+      },
     );
 
     return {
       account,
-      plan,
+      product,
     };
+  }
+
+  async updateSubscriptions(
+    accountId: string,
+    associationId: string,
+    updateProductBody: UpdateProductDto,
+  ): Promise<void> {
+    const settings = await this.settingsRepository.findOne({
+      where: { association: { id: associationId } },
+      relations: ['paymentData'],
+    });
+    if (!settings?.paymentData?.stripeAccountId) {
+      throw new NotFoundException('No Stripe account found for this association');
+    }
+    if (settings.paymentData.stripeAccountId !== accountId) {
+      throw new UnauthorizedException('You are not allowed to access this account');
+    }
+
+    const newPrice = await this.stripe.prices.create(
+      {
+        unit_amount: updateProductBody.constributionPrice,
+        currency: 'eur',
+        recurring: { interval: 'month' },
+        product: settings.paymentData.stripeProductId,
+      },
+      {
+        stripeAccount: accountId,
+      },
+    );
+
+    await this.stripe.products.update(
+      settings.paymentData.stripeProductId,
+      {
+        default_price: newPrice.id,
+      },
+      {
+        stripeAccount: accountId,
+      },
+    );
+
+    const subscriptions = await this.stripe.subscriptions.list({
+      stripeAccount: accountId,
+    });
+    subscriptions.data.forEach(async (subscription) => {
+      await this.stripe.subscriptions.update(
+        subscription.id,
+        {
+          items: [
+            {
+              id: subscription.items.data[0].id,
+              price: newPrice.id,
+            },
+          ],
+        },
+        {
+          stripeAccount: accountId,
+        },
+      );
+    });
   }
 }

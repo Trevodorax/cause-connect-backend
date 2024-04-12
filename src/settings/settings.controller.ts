@@ -14,8 +14,7 @@ import { GetUser } from 'src/auth/decorators/user.decorator';
 interface PaymentDataResponse {
   id: string;
   stripeAccountId: string;
-  stripePlanId: string;
-  stripeSessionInProgress: boolean;
+  stripeProductId: string;
   contributionPrice: number;
 }
 interface ThemeResponse {
@@ -32,8 +31,7 @@ interface SettingsResponse {
 
 const UpdatePaymentDataSchema = z.object({
   stripeAccountId: z.string().optional(),
-  stripePlanId: z.string().optional(),
-  stripeSessionInProgress: z.boolean().optional(),
+  stripeProductId: z.string().optional(),
   contributionPrice: z.number().optional(),
 });
 

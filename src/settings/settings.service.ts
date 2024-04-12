@@ -9,10 +9,11 @@ import { Theme } from './entities/themes.entity';
 import { Settings } from './entities/settings.entity';
 import { Association } from 'src/associations/associations.entity';
 import { PaymentData } from './entities/payment.entity';
+import { PaymentService } from 'src/payment/payment.service';
 
 interface UpdatePaymentDataDto {
   stripeAccountId?: string;
-  stripePlanId?: string;
+  stripeProductId?: string;
   contributionPrice?: number;
 }
 interface UpdateThemeDto {
@@ -40,6 +41,7 @@ export class SettingsService {
     private settingsRepository: Repository<Settings>,
     @InjectRepository(Association)
     private associationRepository: Repository<Association>,
+    private paymentService: PaymentService,
   ) {}
 
   async createSettings(data: NewSettingsDto): Promise<Settings | null> {
@@ -231,6 +233,14 @@ export class SettingsService {
     );
     if (!result.affected) {
       throw new InternalServerErrorException('Failed to update payment data');
+    }
+
+    if (data.contributionPrice) {
+      await this.paymentService.updateSubscriptions(
+        settings.paymentData.stripeAccountId,
+        associationId,
+        { constributionPrice: data.contributionPrice },
+      );
     }
 
     const modifiedPaymentData = await this.paymentDataRepository.findOne({

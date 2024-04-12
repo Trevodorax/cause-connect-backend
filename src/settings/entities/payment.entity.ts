@@ -9,11 +9,8 @@ export class PaymentData {
   contributionPrice: number;
 
   @Column({ default: null })
-  stripePlanId: string;
+  stripeProductId: string;
 
   @Column({ default: null })
   stripeAccountId: string;
-
-  @Column({ default: null })
-  stripeSessionInProgress: boolean;
 }
