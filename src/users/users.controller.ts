@@ -28,6 +28,7 @@ export interface UserResponse {
   email: string;
   fullName: string;
   role: UserRole;
+  stripeCustomerId: string;
 }
 
 export interface UserWithAssociationResponse {
@@ -35,6 +36,7 @@ export interface UserWithAssociationResponse {
   email: string;
   fullName: string;
   role: UserRole;
+  stripeCustomerId: string;
   association: AssociationResponse;
 }
 
@@ -80,6 +82,7 @@ export class UsersController {
       email: user.email,
       fullName: user.fullName,
       role: user.role,
+      stripeCustomerId: user.stripeCustomerId,
     };
   }
 
@@ -93,6 +96,7 @@ export class UsersController {
         email: user.email,
         fullName: user.fullName,
         role: user.role,
+        stripeCustomerId: user.stripeCustomerId,
       }),
     );
   }
@@ -110,6 +114,7 @@ export class UsersController {
       email: foundUser.email,
       fullName: foundUser.fullName,
       role: foundUser.role,
+      stripeCustomerId: foundUser.stripeCustomerId,
       association: {
         id: foundUser.association.id,
         description: foundUser.association.description,
@@ -132,6 +137,7 @@ export class UsersController {
       email: user.email,
       fullName: user.fullName,
       role: user.role,
+      stripeCustomerId: user.stripeCustomerId,
     };
   }
 
@@ -153,6 +159,7 @@ export class UsersController {
       email: user.email,
       fullName: user.fullName,
       role: user.role,
+      stripeCustomerId: user.stripeCustomerId,
     };
   }
 
@@ -166,6 +173,7 @@ export class UsersController {
       email: user.email,
       fullName: user.fullName,
       role: user.role,
+      stripeCustomerId: user.stripeCustomerId,
     };
   }
 
