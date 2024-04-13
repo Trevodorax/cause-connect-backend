@@ -99,7 +99,7 @@ export class SettingsController {
     return theme;
   }
 
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.INTERNAL, UserRole.EXTERNAL)
   @Get('payment')
   async getPaymentData(
     @GetUser() authenticatedUser: User,

@@ -11,6 +11,7 @@ import { UsersService } from 'src/users/users.service';
 import { UserRole } from 'src/users/users.entity';
 import { FilesAzureService } from 'src/files/files.azure.service';
 import { SettingsService } from 'src/settings/settings.service';
+import { PaymentService } from 'src/payment/payment.service';
 
 interface NewAssociationDto {
   name: string;
@@ -40,6 +41,7 @@ export class AssociationsService {
     private userService: UsersService,
     private filesService: FilesAzureService,
     private settingsService: SettingsService,
+    private paymentService: PaymentService,
   ) {}
 
   async createAssociationWithAdmin(
@@ -52,6 +54,16 @@ export class AssociationsService {
     if (!createdAssociation) {
       throw new InternalServerErrorException('Failed to create association');
     }
+
+    const { account, product } =
+      await this.paymentService.createAccountWithProduct({
+        email: admin.email,
+      });
+
+    await this.settingsService.updatePaymentData(createdAssociation.id, {
+      stripeAccountId: account.id,
+      stripeProductId: product.id,
+    });
 
     const newAdmin = await this.userService.createUser({
       associationId: createdAssociation.id,

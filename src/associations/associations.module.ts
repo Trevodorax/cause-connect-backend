@@ -6,6 +6,7 @@ import { Association } from './associations.entity';
 import { UsersModule } from 'src/users/users.module';
 import { FilesModule } from 'src/files/files.module';
 import { SettingsModule } from 'src/settings/settings.module';
+import { PaymentModule } from 'src/payment/payment.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { SettingsModule } from 'src/settings/settings.module';
     UsersModule,
     FilesModule,
     SettingsModule,
+    PaymentModule,
   ],
   controllers: [AssociationsController],
   providers: [AssociationsService],
