@@ -21,6 +21,7 @@ import { ChatbotModule } from './chatbot/chatbot.module';
 import { SettingsModule } from './settings/settings.module';
 import { FeedModule } from './feed/feed.module';
 import { PaymentModule } from './payment/payment.module';
+import { JavaAppModule } from './java-app/java-app.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { PaymentModule } from './payment/payment.module';
     SettingsModule,
     FeedModule,
     PaymentModule,
+    JavaAppModule,
   ],
   providers: [AppService, AuthService],
 })

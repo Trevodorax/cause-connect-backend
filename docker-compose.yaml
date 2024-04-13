@@ -4,6 +4,8 @@ services:
     build: .
     ports:
       - ${API_PORT}:3000
+    volumes:
+      - /var/cause-connect-java-app:/home/deploy/cause-connect-java-app
     depends_on:
       - mysql
     stop_grace_period: 3s
