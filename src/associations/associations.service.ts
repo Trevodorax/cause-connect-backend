@@ -55,14 +55,15 @@ export class AssociationsService {
       throw new InternalServerErrorException('Failed to create association');
     }
 
-    const { account, product } =
-      await this.paymentService.createAccountWithProduct({
+    const { account, contribution, donation } =
+      await this.paymentService.createAccountWithProducts({
         email: admin.email,
       });
 
     await this.settingsService.updatePaymentData(createdAssociation.id, {
       stripeAccountId: account.id,
-      stripeProductId: product.id,
+      stripeContributionId: contribution.id,
+      stripeDonationId: donation.id,
     });
 
     const newAdmin = await this.userService.createUser({

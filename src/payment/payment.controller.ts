@@ -6,9 +6,10 @@ import { Roles } from 'src/auth/rules.decorator';
 import { User, UserRole } from 'src/users/users.entity';
 import { GetUser } from 'src/auth/decorators/user.decorator';
 
-export interface AccountWithProductResponse {
+export interface AccountWithProductsResponse {
   account: Stripe.Account;
-  product: Stripe.Product;
+  contribution: Stripe.Product;
+  donation: Stripe.Product;
 }
 
 const createAccountWithProductBodySchema = z.object({
@@ -26,11 +27,11 @@ export class PaymentController {
     createAccountWithProductBody: z.infer<
       typeof createAccountWithProductBodySchema
     >,
-  ): Promise<AccountWithProductResponse> {
+  ): Promise<AccountWithProductsResponse> {
     const validBody = createAccountWithProductBodySchema.parse(
       createAccountWithProductBody,
     );
-    return this.paymentService.createAccountWithProduct(validBody);
+    return this.paymentService.createAccountWithProducts(validBody);
   }
 
   @Roles(UserRole.ADMIN, UserRole.INTERNAL, UserRole.EXTERNAL)
@@ -70,12 +71,24 @@ export class PaymentController {
   }
 
   @Roles(UserRole.ADMIN, UserRole.INTERNAL, UserRole.EXTERNAL)
-  @Post('customers/:customerId/checkout-session')
-  async createCheckoutSession(
+  @Post('customers/:customerId/checkout/contribution')
+  async createContributionCheckoutSession(
     @Param('customerId') customerId: string,
     @GetUser() authenticatedUser: User,
   ): Promise<string> {
-    return this.paymentService.createCheckoutSession(
+    return this.paymentService.createContributionCheckoutSession(
+      authenticatedUser.association.id,
+      customerId,
+    );
+  }
+
+  @Roles(UserRole.ADMIN, UserRole.INTERNAL, UserRole.EXTERNAL)
+  @Post('customers/:customerId/checkout/donation')
+  async createDonationCheckoutSession(
+    @Param('customerId') customerId: string,
+    @GetUser() authenticatedUser: User,
+  ): Promise<string> {
+    return this.paymentService.createDonationCheckoutSession(
       authenticatedUser.association.id,
       customerId,
     );

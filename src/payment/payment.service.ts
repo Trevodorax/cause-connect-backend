@@ -8,7 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Settings } from 'src/settings/entities/settings.entity';
 import Stripe from 'stripe';
-import { AccountWithProductResponse } from './payment.controller';
+import { AccountWithProductsResponse } from './payment.controller';
 
 interface CreateAccountWithProductDto {
   email: string;
@@ -108,14 +108,14 @@ export class PaymentService {
     return this.stripe.accounts.retrieve(settings.paymentData.stripeAccountId);
   }
 
-  async createAccountWithProduct(
+  async createAccountWithProducts(
     createAccountWithProductBody: CreateAccountWithProductDto,
-  ): Promise<AccountWithProductResponse> {
+  ): Promise<AccountWithProductsResponse> {
     const account = await this.createAccount(
       createAccountWithProductBody.email,
     );
 
-    const product = await this.stripe.products.create(
+    const contribution = await this.stripe.products.create(
       {
         name: 'Contribution',
         default_price_data: {
@@ -129,9 +129,32 @@ export class PaymentService {
       },
     );
 
+    const donation = await this.stripe.products.create(
+      {
+        name: 'Donation',
+      },
+      {
+        stripeAccount: account.id,
+      },
+    );
+
+    await this.stripe.prices.create(
+      {
+        currency: 'eur',
+        custom_unit_amount: {
+          enabled: true,
+        },
+        product: donation.id,
+      },
+      {
+        stripeAccount: account.id,
+      },
+    );
+
     return {
       account,
-      product,
+      contribution,
+      donation,
     };
   }
 
@@ -160,7 +183,7 @@ export class PaymentService {
         unit_amount: updateProductBody.constributionPrice,
         currency: 'eur',
         recurring: { interval: 'month' },
-        product: settings.paymentData.stripeProductId,
+        product: settings.paymentData.stripeContributionId,
       },
       {
         stripeAccount: accountId,
@@ -168,7 +191,7 @@ export class PaymentService {
     );
 
     await this.stripe.products.update(
-      settings.paymentData.stripeProductId,
+      settings.paymentData.stripeContributionId,
       {
         default_price: newPrice.id,
       },
@@ -349,7 +372,7 @@ export class PaymentService {
     });
   }
 
-  async createCheckoutSession(
+  async createContributionCheckoutSession(
     associationId: string,
     customerId: string,
   ): Promise<string> {
@@ -363,23 +386,16 @@ export class PaymentService {
       );
     }
 
-    const product = await this.stripe.products.retrieve(
-      settings.paymentData.stripeProductId,
+    const price = await this.stripe.prices.search(
+      {
+        query: `product:'${settings.paymentData.stripeContributionId}'`,
+      },
       {
         stripeAccount: settings.paymentData.stripeAccountId,
       },
     );
-    if (!product) {
-      throw new NotFoundException('Product not found');
-    }
-    if (product.default_price == null) {
-      throw new NotFoundException('Product price not found');
-    }
-    if (
-      typeof product.default_price === 'object' &&
-      'id' in product.default_price
-    ) {
-      product.default_price = product.default_price.id;
+    if (!price.data[0]) {
+      throw new NotFoundException('Price not found');
     }
 
     const session = await this.stripe.checkout.sessions.create(
@@ -389,13 +405,13 @@ export class PaymentService {
         locale: 'fr',
         line_items: [
           {
-            price: product.default_price,
+            price: price.data[0].id,
             quantity: 1,
           },
         ],
         ui_mode: 'embedded',
         return_url:
-          'http://localhost:5173/checkout/return?session_id={CHECKOUT_SESSION_ID}',
+          'http://localhost:5173/checkout/contribution/return?session_id={CHECKOUT_SESSION_ID}',
       },
       {
         stripeAccount: settings.paymentData.stripeAccountId,
@@ -403,6 +419,74 @@ export class PaymentService {
     );
 
     return String(session.client_secret);
+  }
+
+  async createDonationCheckoutSession(
+    associationId: string,
+    customerId: string,
+  ): Promise<string> {
+    const settings = await this.settingsRepository.findOne({
+      where: { association: { id: associationId } },
+      relations: ['paymentData'],
+    });
+    if (!settings?.paymentData?.stripeAccountId) {
+      throw new NotFoundException(
+        'No Stripe account found for this association',
+      );
+    }
+
+    const price = await this.stripe.prices.search(
+      {
+        query: `product:'${settings.paymentData.stripeDonationId}'`,
+      },
+      {
+        stripeAccount: settings.paymentData.stripeAccountId,
+      },
+    );
+    if (!price.data[0]) {
+      throw new NotFoundException('Price not found');
+    }
+
+    const session = await this.stripe.checkout.sessions.create(
+      {
+        mode: 'payment',
+        customer: customerId,
+        locale: 'fr',
+        line_items: [
+          {
+            price: price.data[0].id,
+            quantity: 1,
+          },
+        ],
+        ui_mode: 'embedded',
+        return_url:
+          'http://localhost:5173/checkout/donation/return?session_id={CHECKOUT_SESSION_ID}',
+      },
+      {
+        stripeAccount: settings.paymentData.stripeAccountId,
+      },
+    );
+
+    return String(session.client_secret);
+  }
+
+  async getCheckoutSession(
+    associationId: string,
+    sessionId: string,
+  ): Promise<Stripe.Checkout.Session> {
+    const settings = await this.settingsRepository.findOne({
+      where: { association: { id: associationId } },
+      relations: ['paymentData'],
+    });
+    if (!settings?.paymentData?.stripeAccountId) {
+      throw new NotFoundException(
+        'No Stripe account found for this association',
+      );
+    }
+
+    return this.stripe.checkout.sessions.retrieve(sessionId, {
+      stripeAccount: settings.paymentData.stripeAccountId,
+    });
   }
 
   async getCheckoutSessions(

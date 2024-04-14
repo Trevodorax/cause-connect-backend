@@ -9,8 +9,11 @@ export class PaymentData {
   contributionPrice: number;
 
   @Column({ default: null })
-  stripeProductId: string;
+  stripeAccountId: string;
 
   @Column({ default: null })
-  stripeAccountId: string;
+  stripeContributionId: string;
+
+  @Column({ default: null })
+  stripeDonationId: string;
 }

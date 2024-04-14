@@ -13,7 +13,8 @@ import { PaymentService } from 'src/payment/payment.service';
 
 interface UpdatePaymentDataDto {
   stripeAccountId?: string;
-  stripeProductId?: string;
+  stripeContributionId?: string;
+  stripeDonationId?: string;
   contributionPrice?: number;
 }
 interface UpdateThemeDto {
