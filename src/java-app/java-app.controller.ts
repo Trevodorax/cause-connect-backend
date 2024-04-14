@@ -8,6 +8,14 @@ export class JavaAppController {
   constructor(private readonly javaAppService: JavaAppService) {}
 
   @Public()
+  @Get('latest-version')
+  async getLatestJarVersion() {
+    return {
+      version: await this.javaAppService.getLatestJarVersion(),
+    };
+  }
+
+  @Public()
   @Get(':version')
   async downloadFile(@Param('version') version: string, @Res() res: Response) {
     const file = await this.javaAppService.getJarForVersion(version);
