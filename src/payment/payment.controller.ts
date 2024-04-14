@@ -95,6 +95,18 @@ export class PaymentController {
   }
 
   @Roles(UserRole.ADMIN, UserRole.INTERNAL, UserRole.EXTERNAL)
+  @Get('checkout/session/:sessionId/status')
+  async getCheckoutSession(
+    @Param('sessionId') sessionId: string,
+    @GetUser() authenticatedUser: User,
+  ): Promise<Stripe.Checkout.Session> {
+    return this.paymentService.getCheckoutSession(
+      authenticatedUser.association.id,
+      sessionId,
+    );
+  }
+
+  @Roles(UserRole.ADMIN, UserRole.INTERNAL, UserRole.EXTERNAL)
   @Get('customers/:customerId/subscription')
   async getCustomerSubscription(
     @Param('customerId') customerId: string,

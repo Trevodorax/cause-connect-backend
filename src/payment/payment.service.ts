@@ -411,7 +411,7 @@ export class PaymentService {
         ],
         ui_mode: 'embedded',
         return_url:
-          'http://localhost:5173/checkout/contribution/return?session_id={CHECKOUT_SESSION_ID}',
+          'http://localhost:5173/app/checkout/contribution/return?session_id={CHECKOUT_SESSION_ID}',
       },
       {
         stripeAccount: settings.paymentData.stripeAccountId,
