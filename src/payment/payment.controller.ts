@@ -6,6 +6,7 @@ import { Roles } from 'src/auth/rules.decorator';
 import { User, UserRole } from 'src/users/users.entity';
 import { GetUser } from 'src/auth/decorators/user.decorator';
 import { UserResponse } from 'src/users/users.controller';
+import { Public } from 'src/auth/decorators/public.decorator';
 
 export interface AccountWithProductsResponse {
   account: Stripe.Account;
@@ -19,6 +20,10 @@ const createAccountWithProductBodySchema = z.object({
 
 const sendReminderEmailsSchema = z.object({
   emails: z.array(z.string().email()),
+});
+
+const createPublicDonationCheckoutSessionSchema = z.object({
+  associationId: z.string(),
 });
 
 @Controller('payment')
@@ -89,13 +94,29 @@ export class PaymentController {
 
   @Roles(UserRole.ADMIN, UserRole.INTERNAL, UserRole.EXTERNAL)
   @Post('customers/:customerId/checkout/donation')
-  async createDonationCheckoutSession(
+  async createPrivateDonationCheckoutSession(
     @Param('customerId') customerId: string,
     @GetUser() authenticatedUser: User,
   ): Promise<string> {
     return this.paymentService.createDonationCheckoutSession(
       authenticatedUser.association.id,
       customerId,
+    );
+  }
+
+  @Public()
+  @Post('checkout/donation')
+  async createPublicDonationCheckoutSession(
+    @Body()
+    createPublicDonationCheckoutSessionBody: z.infer<
+      typeof createPublicDonationCheckoutSessionSchema
+    >,
+  ): Promise<string> {
+    const validBody = createPublicDonationCheckoutSessionSchema.parse(
+      createPublicDonationCheckoutSessionBody,
+    );
+    return this.paymentService.createDonationCheckoutSession(
+      validBody.associationId,
     );
   }
 

@@ -435,7 +435,7 @@ export class PaymentService {
 
   async createDonationCheckoutSession(
     associationId: string,
-    customerId: string,
+    customerId?: string,
   ): Promise<string> {
     const settings = await this.settingsRepository.findOne({
       where: { association: { id: associationId } },
@@ -472,7 +472,9 @@ export class PaymentService {
         ],
         ui_mode: 'embedded',
         return_url:
-          'http://localhost:5173/checkout/donation/return?session_id={CHECKOUT_SESSION_ID}',
+          customerId === undefined
+            ? 'http://localhost:5173/checkout/donation/return?session_id={CHECKOUT_SESSION_ID}'
+            : 'http://localhost:5173/app/checkout/donation/return?session_id={CHECKOUT_SESSION_ID}',
       },
       {
         stripeAccount: settings.paymentData.stripeAccountId,

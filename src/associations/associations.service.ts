@@ -167,4 +167,11 @@ export class AssociationsService {
 
     return url;
   }
+
+  async getAssociationStripeAccountId(
+    associationId: string,
+  ): Promise<{ id: string }> {
+    const settings = await this.settingsService.getSettings(associationId);
+    return { id: settings.paymentData.stripeAccountId };
+  }
 }

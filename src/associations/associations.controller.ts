@@ -110,4 +110,10 @@ export class AssociationsController {
       logoUrl: url,
     };
   }
+
+  @Public()
+  @Get(':id/stripe-account-id')
+  async getStripeAccountId(@Param('id') id: string): Promise<{ id: string }> {
+    return this.associationsService.getAssociationStripeAccountId(id);
+  }
 }
