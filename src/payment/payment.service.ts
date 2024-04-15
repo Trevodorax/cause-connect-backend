@@ -9,6 +9,9 @@ import { Repository } from 'typeorm';
 import { Settings } from 'src/settings/entities/settings.entity';
 import Stripe from 'stripe';
 import { AccountWithProductsResponse } from './payment.controller';
+import { UserResponse } from 'src/users/users.controller';
+import { User } from 'src/users/users.entity';
+import { EmailService } from 'src/email/email.service';
 
 interface CreateAccountWithProductDto {
   email: string;
@@ -22,6 +25,10 @@ interface CreateCustomerDto {
   email: string;
 }
 
+interface ReminderEmailsDto {
+  emails: string[];
+}
+
 @Injectable()
 export class PaymentService {
   private stripe: Stripe;
@@ -29,6 +36,9 @@ export class PaymentService {
   constructor(
     @InjectRepository(Settings)
     private settingsRepository: Repository<Settings>,
+    @InjectRepository(User)
+    private usersRepository: Repository<User>,
+    private emailService: EmailService,
   ) {
     this.stripe = new Stripe(process.env.STRIPE_SECRET ?? '', {
       apiVersion: '2023-10-16',
@@ -36,7 +46,7 @@ export class PaymentService {
   }
 
   async createAccount(email: string): Promise<Stripe.Account> {
-    return this.stripe.accounts.create({
+    return await this.stripe.accounts.create({
       type: 'express',
       country: 'FR',
       email,
@@ -105,7 +115,9 @@ export class PaymentService {
       );
     }
 
-    return this.stripe.accounts.retrieve(settings.paymentData.stripeAccountId);
+    return await this.stripe.accounts.retrieve(
+      settings.paymentData.stripeAccountId,
+    );
   }
 
   async createAccountWithProducts(
@@ -484,7 +496,7 @@ export class PaymentService {
       );
     }
 
-    return this.stripe.checkout.sessions.retrieve(sessionId, {
+    return await this.stripe.checkout.sessions.retrieve(sessionId, {
       stripeAccount: settings.paymentData.stripeAccountId,
     });
   }
@@ -492,7 +504,7 @@ export class PaymentService {
   async getCheckoutSessions(
     stripeAccountId: string,
   ): Promise<Stripe.ApiList<Stripe.Checkout.Session>> {
-    return this.stripe.checkout.sessions.list({
+    return await this.stripe.checkout.sessions.list({
       stripeAccount: stripeAccountId,
     });
   }
@@ -511,7 +523,7 @@ export class PaymentService {
       );
     }
 
-    return this.stripe.subscriptions.list(
+    return await this.stripe.subscriptions.list(
       {
         customer: customerId,
       },
@@ -519,5 +531,76 @@ export class PaymentService {
         stripeAccount: settings.paymentData.stripeAccountId,
       },
     );
+  }
+
+  async getLateSubscriptions(
+    associationId: string,
+  ): Promise<Stripe.ApiList<Stripe.Subscription>> {
+    const settings = await this.settingsRepository.findOne({
+      where: { association: { id: associationId } },
+      relations: ['paymentData'],
+    });
+    if (!settings?.paymentData?.stripeAccountId) {
+      throw new NotFoundException(
+        'No Stripe account found for this association',
+      );
+    }
+
+    return await this.stripe.subscriptions.list(
+      {
+        status: 'past_due',
+      },
+      {
+        stripeAccount: settings.paymentData.stripeAccountId,
+      },
+    );
+  }
+
+  async getLateUsers(associationId: string): Promise<UserResponse[]> {
+    const lateSubscriptions = await this.getLateSubscriptions(associationId);
+    const usersPromises: Promise<UserResponse | null>[] =
+      lateSubscriptions.data.map(async (subscription) => {
+        const customerId = this.getCustomerId(subscription.customer);
+        if (customerId !== null) {
+          const user = await this.usersRepository.findOne({
+            where: { stripeCustomerId: customerId },
+          });
+          if (user !== null) {
+            return {
+              id: user.id,
+              email: user.email,
+              fullName: user.fullName,
+              role: user.role,
+              stripeCustomerId: user.stripeCustomerId,
+            };
+          }
+        }
+        return null;
+      });
+
+    const users = await Promise.all(usersPromises);
+    return users.filter((user) => user !== null) as UserResponse[];
+  }
+
+  getCustomerId(
+    customer: string | Stripe.Customer | Stripe.DeletedCustomer,
+  ): string | null {
+    if (typeof customer === 'string') {
+      return customer;
+    }
+    if ('deleted' in customer && customer.deleted) {
+      return null;
+    }
+    return customer.id;
+  }
+
+  async sendReminderEmails(
+    reminderEmailsDto: ReminderEmailsDto,
+  ): Promise<void> {
+    reminderEmailsDto.emails.forEach(async (email) => {
+      await this.emailService.sendLateUserEmail({
+        email,
+      });
+    });
   }
 }

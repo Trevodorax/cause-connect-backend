@@ -7,6 +7,10 @@ interface PasswordResetEmailDto {
   passwordResetCode: string;
 }
 
+interface LateUserEmailDto {
+  email: string;
+}
+
 @Injectable()
 export class EmailService {
   constructor(private mailerService: MailerService) {}
@@ -21,6 +25,15 @@ export class EmailService {
         fullName: dto.fullName,
         passwordResetCode: dto.passwordResetCode,
       },
+    });
+  }
+
+  async sendLateUserEmail(dto: LateUserEmailDto) {
+    await this.mailerService.sendMail({
+      to: dto.email,
+      // from: '"Support Team" <support@example.com>', // override default from
+      subject: 'Late payment reminder',
+      template: './late-user', // `.hbs` extension is appended automatically
     });
   }
 }

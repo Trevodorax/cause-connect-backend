@@ -5,6 +5,7 @@ import { PaymentService } from './payment.service';
 import { Roles } from 'src/auth/rules.decorator';
 import { User, UserRole } from 'src/users/users.entity';
 import { GetUser } from 'src/auth/decorators/user.decorator';
+import { UserResponse } from 'src/users/users.controller';
 
 export interface AccountWithProductsResponse {
   account: Stripe.Account;
@@ -14,6 +15,10 @@ export interface AccountWithProductsResponse {
 
 const createAccountWithProductBodySchema = z.object({
   email: z.string().email(),
+});
+
+const sendReminderEmailsSchema = z.object({
+  emails: z.array(z.string().email()),
 });
 
 @Controller('payment')
@@ -127,8 +132,25 @@ export class PaymentController {
   }
 
   @Roles(UserRole.ADMIN)
+  @Get('late-users')
+  async getLateUsers(
+    @GetUser() authenticatedUser: User,
+  ): Promise<UserResponse[]> {
+    return this.paymentService.getLateUsers(authenticatedUser.association.id);
+  }
+
+  @Roles(UserRole.ADMIN)
   @Delete('accounts/:accountId')
   async deleteAccount(@Param('accountId') accountId: string): Promise<void> {
     return this.paymentService.deleteAccount(accountId);
+  }
+
+  @Roles(UserRole.ADMIN)
+  @Post('late-users/send-reminder')
+  async sendLateUsersReminder(
+    @Body()
+    sendLateUsersReminderBody: z.infer<typeof sendReminderEmailsSchema>,
+  ): Promise<void> {
+    return this.paymentService.sendReminderEmails(sendLateUsersReminderBody);
   }
 }
