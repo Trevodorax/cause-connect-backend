@@ -1,5 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import { readdir, readFile } from 'fs';
+import { Repository } from 'typeorm';
+import { PlugIn } from './plugin.entity';
 
 interface File {
   name: string;
@@ -8,10 +11,16 @@ interface File {
   data: Buffer;
 }
 
-const JAR_ROOT_PATH = '/home/deploy/cause-connect-java-app/';
+const JAR_ROOT_PATH = '/home/deploy/cause-connect-java-app/jar/';
+const INSTALLER_ROOT_PATH = '/home/deploy/cause-connect-java-app/installer/';
 
 @Injectable()
 export class JavaAppService {
+  constructor(
+    @InjectRepository(PlugIn)
+    private plugInRepository: Repository<PlugIn>,
+  ) {}
+
   async getJarForVersion(version: string): Promise<File> {
     const fileName = `causeconnect-${version}.jar`;
     const filePath = `${JAR_ROOT_PATH}${fileName}`;
@@ -58,6 +67,66 @@ export class JavaAppService {
               reject(new Error('Invalid file name.'));
             }
           }
+        }
+      });
+    });
+  }
+
+  async getPlugins(): Promise<PlugIn[]> {
+    return this.plugInRepository.find();
+  }
+
+  async getPlugin(id: string): Promise<PlugIn | null> {
+    return this.plugInRepository.findOneBy({ id });
+  }
+
+  async downloadPlugin(id: string): Promise<File> {
+    const plugin = await this.getPlugin(id);
+    if (!plugin) {
+      throw new NotFoundException('Plugin not found');
+    }
+
+    return new Promise((resolve, reject) => {
+      readFile(plugin.jarFilePath, (err, data) => {
+        if (err) {
+          if (err.code === 'ENOENT') {
+            reject(new NotFoundException('Version not found.'));
+          } else {
+            reject(err);
+          }
+        } else {
+          const file: File = {
+            name: plugin.name + '.jar',
+            mimeType: 'application/java-archive',
+            size: data.byteLength,
+            data: data,
+          };
+          resolve(file);
+        }
+      });
+    });
+  }
+
+  async downloadLauncher(): Promise<File> {
+    const fileName = 'cause-connect-installer.dmg';
+    const filePath = `${INSTALLER_ROOT_PATH}${fileName}`;
+
+    return new Promise((resolve, reject) => {
+      readFile(filePath, (err, data) => {
+        if (err) {
+          if (err.code === 'ENOENT') {
+            reject(new NotFoundException('Version not found.'));
+          } else {
+            reject(err);
+          }
+        } else {
+          const file: File = {
+            name: fileName,
+            mimeType: 'application/java-archive',
+            size: data.byteLength,
+            data: data,
+          };
+          resolve(file);
         }
       });
     });
