@@ -425,7 +425,7 @@ export class PaymentService {
         ],
         ui_mode: 'embedded',
         return_url:
-          'http://localhost:5173/app/checkout/contribution/return?session_id={CHECKOUT_SESSION_ID}',
+          'https://www.causeconnect.fr/app/checkout/contribution/return?session_id={CHECKOUT_SESSION_ID}',
       },
       {
         stripeAccount: settings.paymentData.stripeAccountId,
@@ -475,8 +475,8 @@ export class PaymentService {
         ui_mode: 'embedded',
         return_url:
           customerId === undefined
-            ? 'http://localhost:5173/checkout/donation/return?session_id={CHECKOUT_SESSION_ID}'
-            : 'http://localhost:5173/app/checkout/donation/return?session_id={CHECKOUT_SESSION_ID}',
+            ? 'https://www.causeconnect.fr/checkout/donation/return?session_id={CHECKOUT_SESSION_ID}'
+            : 'https://www.causeconnect.fr/app/checkout/donation/return?session_id={CHECKOUT_SESSION_ID}',
       },
       {
         stripeAccount: settings.paymentData.stripeAccountId,
