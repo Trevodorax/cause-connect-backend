@@ -1,8 +1,10 @@
 import {
+  Inject,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
   UnauthorizedException,
+  forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -10,8 +12,8 @@ import { Settings } from 'src/settings/entities/settings.entity';
 import Stripe from 'stripe';
 import { AccountWithProductsResponse } from './payment.controller';
 import { UserResponse } from 'src/users/users.controller';
-import { User } from 'src/users/users.entity';
 import { EmailService } from 'src/email/email.service';
+import { UsersService } from 'src/users/users.service';
 
 interface CreateAccountWithProductDto {
   email: string;
@@ -36,8 +38,8 @@ export class PaymentService {
   constructor(
     @InjectRepository(Settings)
     private settingsRepository: Repository<Settings>,
-    @InjectRepository(User)
-    private usersRepository: Repository<User>,
+    @Inject(forwardRef(() => UsersService))
+    private usersService: UsersService,
     private emailService: EmailService,
   ) {
     this.stripe = new Stripe(process.env.STRIPE_SECRET ?? '', {
@@ -511,9 +513,9 @@ export class PaymentService {
     });
   }
 
-  async getCustomerSubscription(
+  async getCustomerSubscriptions(
     associationId: string,
-    customerId: string,
+    stripeCustomerId: string,
   ): Promise<Stripe.ApiList<Stripe.Subscription>> {
     const settings = await this.settingsRepository.findOne({
       where: { association: { id: associationId } },
@@ -527,7 +529,31 @@ export class PaymentService {
 
     return await this.stripe.subscriptions.list(
       {
-        customer: customerId,
+        customer: stripeCustomerId,
+      },
+      {
+        stripeAccount: settings.paymentData.stripeAccountId,
+      },
+    );
+  }
+
+  async getCustomerSubscriptionSchedules(
+    associationId: string,
+    stripeCustomerId: string,
+  ): Promise<Stripe.ApiList<Stripe.SubscriptionSchedule>> {
+    const settings = await this.settingsRepository.findOne({
+      where: { association: { id: associationId } },
+      relations: ['paymentData'],
+    });
+    if (!settings?.paymentData?.stripeAccountId) {
+      throw new NotFoundException(
+        'No Stripe account found for this association',
+      );
+    }
+
+    return await this.stripe.subscriptionSchedules.list(
+      {
+        customer: stripeCustomerId,
       },
       {
         stripeAccount: settings.paymentData.stripeAccountId,
@@ -564,9 +590,8 @@ export class PaymentService {
       lateSubscriptions.data.map(async (subscription) => {
         const customerId = this.getCustomerId(subscription.customer);
         if (customerId !== null) {
-          const user = await this.usersRepository.findOne({
-            where: { stripeCustomerId: customerId },
-          });
+          const user =
+            await this.usersService.findOneByStripeCustomerId(customerId);
           if (user !== null) {
             return {
               id: user.id,
@@ -603,6 +628,65 @@ export class PaymentService {
       await this.emailService.sendLateUserEmail({
         email,
       });
+    });
+  }
+
+  async cancelSubscription(
+    subscriptionId: string,
+    stripeAccountId: string,
+  ): Promise<void> {
+    await this.stripe.subscriptions.cancel(subscriptionId, {
+      stripeAccount: stripeAccountId,
+    });
+  }
+
+  async cancelSubscriptionSchedule(
+    subscriptionScheduleId: string,
+    stripeAccountId: string,
+  ): Promise<void> {
+    await this.stripe.subscriptionSchedules.cancel(subscriptionScheduleId, {
+      stripeAccount: stripeAccountId,
+    });
+  }
+
+  async cancelCustomerSubscriptions(
+    associationId: string,
+    stripeCustomerId: string,
+  ): Promise<void> {
+    const settings = await this.settingsRepository.findOne({
+      where: { association: { id: associationId } },
+      relations: ['paymentData'],
+    });
+    if (!settings?.paymentData?.stripeAccountId) {
+      throw new NotFoundException(
+        'No Stripe account found for this association',
+      );
+    }
+
+    const subscriptions = await this.getCustomerSubscriptions(
+      associationId,
+      stripeCustomerId,
+    );
+    subscriptions.data.forEach(async (subscription) => {
+      if (subscription.status === 'active') {
+        await this.cancelSubscription(
+          subscription.id,
+          settings.paymentData.stripeAccountId,
+        );
+      }
+    });
+
+    const subscriptionSchedules = await this.getCustomerSubscriptionSchedules(
+      associationId,
+      stripeCustomerId,
+    );
+    subscriptionSchedules.data.forEach(async (subscriptionSchedule) => {
+      if (subscriptionSchedule.status === 'active') {
+        await this.cancelSubscriptionSchedule(
+          subscriptionSchedule.id,
+          settings.paymentData.stripeAccountId,
+        );
+      }
     });
   }
 }

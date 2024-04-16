@@ -138,7 +138,7 @@ export class PaymentController {
     @Param('customerId') customerId: string,
     @GetUser() authenticatedUser: User,
   ): Promise<Stripe.ApiList<Stripe.Subscription>> {
-    return this.paymentService.getCustomerSubscription(
+    return this.paymentService.getCustomerSubscriptions(
       authenticatedUser.association.id,
       customerId,
     );

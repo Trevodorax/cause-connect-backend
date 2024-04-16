@@ -1,9 +1,11 @@
 import {
+  Inject,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
   UnauthorizedException,
   UnprocessableEntityException,
+  forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Like, Repository } from 'typeorm';
@@ -30,6 +32,7 @@ export class UsersService {
     @InjectRepository(Association)
     private associationRepository: Repository<Association>,
     private emailService: EmailService,
+    @Inject(forwardRef(() => PaymentService))
     private paymentService: PaymentService,
     private settingsService: SettingsService,
   ) {}
@@ -63,11 +66,25 @@ export class UsersService {
     });
   }
 
+  async findOneByStripeCustomerId(
+    stripeCustomerId: string,
+  ): Promise<User | null> {
+    return this.userRepository.findOne({
+      where: { stripeCustomerId: stripeCustomerId },
+      relations: ['association'],
+    });
+  }
+
   async deleteUser(id: string): Promise<User> {
     const user = await this.findOneById(id);
     if (!user) {
       throw new NotFoundException('User not found');
     }
+
+    await this.paymentService.cancelCustomerSubscriptions(
+      user.association.id,
+      user.stripeCustomerId,
+    );
 
     const deletedUser = await this.userRepository.remove(user);
     return deletedUser;
@@ -94,7 +111,9 @@ export class UsersService {
     // get stripe account for the association
     const settings = await this.settingsService.getSettings(user.associationId);
     if (!settings.paymentData?.stripeAccountId) {
-      throw new NotFoundException('No Stripe account found for this association');
+      throw new NotFoundException(
+        'No Stripe account found for this association',
+      );
     }
 
     let stripeCustomer;
