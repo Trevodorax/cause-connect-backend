@@ -1,7 +1,24 @@
-import { Controller, Get, Param, Res } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Post,
+  Res,
+  UploadedFile,
+  UseInterceptors,
+  Body,
+} from '@nestjs/common';
 import { JavaAppService } from './java-app.service';
 import { Response } from 'express';
 import { Public } from 'src/auth/decorators/public.decorator';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { z } from 'zod';
+
+const createPluginSchema = z.object({
+  name: z.string(),
+  description: z.string(),
+  author: z.string(),
+});
 
 interface PlugInResponse {
   id: string;
@@ -33,9 +50,25 @@ export class JavaAppController {
   }
 
   @Public()
+  @Post('plugins')
+  @UseInterceptors(FileInterceptor('plugin'))
+  async updateAssociationLogo(
+    @UploadedFile() file: Express.Multer.File,
+    @Body() createPluginDto: z.infer<typeof createPluginSchema>,
+  ): Promise<PlugInResponse> {
+    const validBody = createPluginSchema.parse(createPluginDto);
+    const plugin = await this.javaAppService.createPlugin(file, {
+      name: validBody.name ?? file.originalname,
+      description: validBody.description ?? '',
+      author: validBody.author ?? '',
+    });
+    return plugin;
+  }
+
+  @Public()
   @Get('plugins')
   async getPlugins(): Promise<PlugInResponse[]> {
-    return this.javaAppService.getPlugins();
+    return await this.javaAppService.getPlugins();
   }
 
   @Public()

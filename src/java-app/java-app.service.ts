@@ -1,6 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { readdir, readFile } from 'fs';
+import * as fs from 'fs';
 import { Repository } from 'typeorm';
 import { PlugIn } from './plugin.entity';
 
@@ -11,7 +16,14 @@ interface File {
   data: Buffer;
 }
 
+interface CreatePluginDto {
+  name: string;
+  description: string;
+  author: string;
+}
+
 const JAR_ROOT_PATH = '/home/deploy/cause-connect-java-app/jar/';
+const PLUGINS_ROOT_PATH = '/home/deploy/cause-connect-java-app/plugins/';
 const INSTALLER_ROOT_PATH = '/home/deploy/cause-connect-java-app/installer/';
 
 @Injectable()
@@ -70,6 +82,38 @@ export class JavaAppService {
         }
       });
     });
+  }
+
+  async uploadPlugin(file: Express.Multer.File): Promise<string> {
+    const fileName = file.originalname;
+    const filePath = `${PLUGINS_ROOT_PATH}${fileName}`;
+
+    return new Promise((resolve, reject) => {
+      fs.writeFile(filePath, file.buffer, (err) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(filePath);
+        }
+      });
+    });
+  }
+
+  async createPlugin(
+    file: Express.Multer.File,
+    createPluginDto: CreatePluginDto,
+  ): Promise<PlugIn> {
+    try {
+      const filePath = await this.uploadPlugin(file);
+      const plugin = this.plugInRepository.create({
+        ...createPluginDto,
+        jarFilePath: filePath,
+      });
+      await this.plugInRepository.save(plugin);
+      return plugin;
+    } catch (err) {
+      throw new InternalServerErrorException(err, 'Failed to create plugin');
+    }
   }
 
   async getPlugins(): Promise<PlugIn[]> {
