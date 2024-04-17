@@ -95,6 +95,7 @@ export class AssociationsController {
     return association;
   }
 
+  @Public()
   @Post(':id/logo')
   @UseInterceptors(FileInterceptor('logo'))
   async updateAssociationLogo(
