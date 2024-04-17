@@ -85,7 +85,8 @@ export class JavaAppService {
   }
 
   async uploadPlugin(file: Express.Multer.File): Promise<string> {
-    const fileName = file.originalname;
+    const timestamp = new Date().getMilliseconds();
+    const fileName = `${timestamp}_${file.originalname}`;
     const filePath = `${PLUGINS_ROOT_PATH}${fileName}`;
 
     return new Promise((resolve, reject) => {
@@ -117,11 +118,11 @@ export class JavaAppService {
   }
 
   async getPlugins(): Promise<PlugIn[]> {
-    return this.plugInRepository.find();
+    return await this.plugInRepository.find();
   }
 
   async getPlugin(id: string): Promise<PlugIn | null> {
-    return this.plugInRepository.findOneBy({ id });
+    return await this.plugInRepository.findOneBy({ id });
   }
 
   async downloadPlugin(id: string): Promise<File> {
