@@ -14,6 +14,7 @@ import { AccountWithProductsResponse } from './payment.controller';
 import { UserResponse } from 'src/users/users.controller';
 import { EmailService } from 'src/email/email.service';
 import { UsersService } from 'src/users/users.service';
+import { ConfigService } from '@nestjs/config';
 
 interface CreateAccountWithProductDto {
   email: string;
@@ -41,6 +42,7 @@ export class PaymentService {
     @Inject(forwardRef(() => UsersService))
     private usersService: UsersService,
     private emailService: EmailService,
+    private configService: ConfigService,
   ) {
     this.stripe = new Stripe(process.env.STRIPE_SECRET ?? '', {
       apiVersion: '2023-10-16',
@@ -424,8 +426,7 @@ export class PaymentService {
           },
         ],
         ui_mode: 'embedded',
-        return_url:
-          'https://www.causeconnect.fr/app/checkout/contribution/return?session_id={CHECKOUT_SESSION_ID}',
+        return_url: `${this.configService.get<string>('WEBAPP_URL')}/app/checkout/contribution/return?session_id={CHECKOUT_SESSION_ID}`,
       },
       {
         stripeAccount: settings.paymentData.stripeAccountId,
@@ -475,8 +476,8 @@ export class PaymentService {
         ui_mode: 'embedded',
         return_url:
           customerId === undefined
-            ? 'https://www.causeconnect.fr/checkout/donation/return?session_id={CHECKOUT_SESSION_ID}'
-            : 'https://www.causeconnect.fr/app/checkout/donation/return?session_id={CHECKOUT_SESSION_ID}',
+            ? `${this.configService.get<string>('WEBAPP_URL')}/checkout/donation/return?session_id={CHECKOUT_SESSION_ID}`
+            : `${this.configService.get<string>('WEBAPP_URL')}/app/checkout/donation/return?session_id={CHECKOUT_SESSION_ID}`,
       },
       {
         stripeAccount: settings.paymentData.stripeAccountId,
