@@ -8,6 +8,6 @@ export class Theme {
   @Column({ default: '#1677FF' })
   color: string;
 
-  @Column({ default: 'Inter' })
+  @Column({ default: 'Trebuchet MS' })
   font: string;
 }
