@@ -159,7 +159,7 @@ export class JavaAppService {
       readFile(filePath, (err, data) => {
         if (err) {
           if (err.code === 'ENOENT') {
-            reject(new NotFoundException('Version not found.'));
+            reject(new NotFoundException('File not found.'));
           } else {
             reject(err);
           }

@@ -40,16 +40,6 @@ export class JavaAppController {
   }
 
   @Public()
-  @Get(':version')
-  async downloadFile(@Param('version') version: string, @Res() res: Response) {
-    const file = await this.javaAppService.getJarForVersion(version);
-    res.setHeader('Content-Disposition', `attachment; filename="${file.name}"`);
-    res.setHeader('Content-Type', file.mimeType);
-    res.setHeader('Content-Length', file.size);
-    res.send(file.data);
-  }
-
-  @Public()
   @Post('plugins')
   @UseInterceptors(FileInterceptor('plugin'))
   async updateAssociationLogo(
@@ -85,6 +75,16 @@ export class JavaAppController {
   @Get('installer')
   async downloadInstaller(@Res() res: Response) {
     const file = await this.javaAppService.downloadLauncher();
+    res.setHeader('Content-Disposition', `attachment; filename="${file.name}"`);
+    res.setHeader('Content-Type', file.mimeType);
+    res.setHeader('Content-Length', file.size);
+    res.send(file.data);
+  }
+
+  @Public()
+  @Get(':version')
+  async downloadFile(@Param('version') version: string, @Res() res: Response) {
+    const file = await this.javaAppService.getJarForVersion(version);
     res.setHeader('Content-Disposition', `attachment; filename="${file.name}"`);
     res.setHeader('Content-Type', file.mimeType);
     res.setHeader('Content-Length', file.size);
