@@ -294,25 +294,30 @@ export class PaymentService {
           );
         }
       } else {
-        await this.stripe.subscriptionSchedules.create(
+        const createdSchedule = await this.stripe.subscriptionSchedules.create(
           {
-            customer:
-              typeof subscription.customer === 'string'
-                ? subscription.customer
-                : subscription.customer.id,
-            start_date: subscription.current_period_start,
+            from_subscription: subscription.id,
+          },
+          {
+            stripeAccount: accountId,
+          },
+        );
+        await this.stripe.subscriptionSchedules.update(
+          createdSchedule.id,
+          {
             phases: [
               {
                 items: [
                   {
                     price:
-                      typeof subscription.items.data[0].price === 'string'
-                        ? subscription.items.data[0].price
-                        : subscription.items.data[0].price.id,
-                    quantity: subscription.items.data[0].quantity,
+                      typeof createdSchedule.phases[0].items[0].price === 'string'
+                        ? createdSchedule.phases[0].items[0].price
+                        : createdSchedule.phases[0].items[0].price.id,
+                    quantity: createdSchedule.phases[0].items[0].quantity,
                   },
                 ],
-                end_date: subscription.current_period_end,
+                start_date: createdSchedule.phases[0].start_date,
+                end_date: createdSchedule.phases[0].end_date,
               },
               {
                 items: [
