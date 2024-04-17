@@ -10,5 +10,6 @@ import { Ballot } from './entities/ballots.entity';
   imports: [TypeOrmModule.forFeature([Vote, Ballot]), PollQuestionModule],
   controllers: [VotesController],
   providers: [VotesService],
+  exports: [VotesService],
 })
 export class VotesModule {}

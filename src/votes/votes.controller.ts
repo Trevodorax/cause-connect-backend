@@ -15,7 +15,7 @@ import {
   VoteVisibility,
 } from './entities/votes.entity';
 
-interface VoteResponse {
+export interface VoteResponse {
   id: string;
   title: string;
   description: string;

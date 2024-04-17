@@ -13,6 +13,8 @@ import { Meeting } from './meetings.entity';
 import { Repository } from 'typeorm';
 import { User } from 'src/users/users.entity';
 import { v4 as uuid } from 'uuid';
+import { Vote } from 'src/votes/entities/votes.entity';
+import { VotesService } from 'src/votes/votes.service';
 
 interface NewMeetingDto {
   agendum: string;
@@ -30,6 +32,7 @@ export class MeetingsService {
     private readonly eventsService: EventsService,
     @InjectRepository(Meeting)
     private meetingsRepository: Repository<Meeting>,
+    private votesService: VotesService,
   ) {}
 
   // use all services from events service but for meeting
@@ -48,7 +51,7 @@ export class MeetingsService {
   async getMeetingById(id: string): Promise<Meeting> {
     const meeting = await this.meetingsRepository.findOne({
       where: { id },
-      relations: ['event'],
+      relations: ['event', 'votes'],
     });
     if (!meeting) {
       throw new NotFoundException(`Meeting with id ${id} not found`);
@@ -156,6 +159,45 @@ export class MeetingsService {
     await this.meetingsRepository.save(meeting);
 
     return presenceCode;
+  }
+
+  async getMeetingForEvent(eventId: string): Promise<Meeting | null> {
+    return this.meetingsRepository.findOne({
+      where: { event: { id: eventId } },
+      relations: ['event'],
+    });
+  }
+
+  async assignVoteToMeeting(meetingId: string, voteId: string): Promise<Vote> {
+    const meeting = await this.getMeetingById(meetingId);
+    const vote = await this.votesService.findById(voteId);
+    if (!vote || !meeting) {
+      throw new NotFoundException('Vote or Meeting not found');
+    }
+
+    meeting.votes = [...meeting.votes, vote];
+    await this.meetingsRepository.save(meeting);
+
+    return vote;
+  }
+
+  async removeVoteFromMeeting(
+    meetingId: string,
+    voteId: string,
+  ): Promise<void> {
+    const meeting = await this.getMeetingById(meetingId);
+    const vote = await this.votesService.findById(voteId);
+    if (!vote || !meeting) {
+      throw new NotFoundException('Vote or Meeting not found');
+    }
+
+    meeting.votes = meeting.votes.filter((v) => v.id !== vote.id);
+    await this.meetingsRepository.save(meeting);
+  }
+
+  async getMeetingVotes(meetingId: string): Promise<Vote[]> {
+    const meeting = await this.getMeetingById(meetingId);
+    return meeting.votes;
   }
 
   private async getEventId(id: string): Promise<string> {

@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { Association } from 'src/associations/associations.entity';
 import { Ballot } from './ballots.entity';
+import { Meeting } from 'src/meetings/meetings.entity';
 
 export enum VoteStatus {
   NOT_STARTED = 'not_started',
@@ -57,6 +58,9 @@ export class Vote {
 
   @Column({ default: 1 })
   currentBallot: number;
+
+  @ManyToOne(() => Meeting, (meeting) => meeting.votes)
+  meeting: Meeting;
 
   @CreateDateColumn()
   createdAt: Date;

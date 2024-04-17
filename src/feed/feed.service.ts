@@ -90,7 +90,7 @@ export class FeedService {
 
     if (meeting) {
       return {
-        id: meeting.id,
+        id: event.id,
         type: 'meeting',
         title: event.title,
         description: event.description,

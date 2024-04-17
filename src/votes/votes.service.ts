@@ -100,7 +100,9 @@ export class VotesService {
 
   // get one vote by id
   async findById(id: string): Promise<Vote> {
-    const vote = await this.voteRepository.findOneBy({ id });
+    const vote = await this.voteRepository.findOne({
+      where: { id },
+    });
     if (!vote) {
       throw new NotFoundException('Vote not found');
     }
@@ -240,7 +242,7 @@ export class VotesService {
     );
     const winningOption = sortedOptions[0];
 
-    // check
+    // acceptance criteria
     const minNbVotesPerAcceptanceCriteria: {
       [key in VoteAcceptanceCriteria]: number;
     } = {
@@ -252,11 +254,15 @@ export class VotesService {
       winningOption.count >
       minNbVotesPerAcceptanceCriteria[vote.acceptanceCriteria];
 
-    // TODO: when we'll have a list of users for a vote (wait for meeting module), check the minPercentAnswers
+    // min percent answers
+    const nbPeopleInVoteMeeting = await this.getNbPeopleInVoteMeeting(voteId);
+    const minNbAnswers =
+      nbPeopleInVoteMeeting ?? 0 * (vote.minPercentAnswers / 100);
+    const isMinPercentAnswersMet = totalVotesCount > minNbAnswers;
 
     return {
       optionId: winningOption.optionId,
-      isValid: isAcceptanceCriteriaMet,
+      isValid: isAcceptanceCriteriaMet && isMinPercentAnswersMet,
       lastBallotResults: answersCount,
     };
   }
@@ -316,5 +322,27 @@ export class VotesService {
     }
 
     return createdBallot;
+  }
+
+  private async getNbPeopleInVoteMeeting(
+    voteId: string,
+  ): Promise<number | null> {
+    const vote = await this.voteRepository.findOne({
+      where: { id: voteId },
+      relations: [
+        'meeting',
+        'meeting.event',
+        'meeting.event.eventUserEnrollments',
+      ],
+    });
+    if (!vote) {
+      throw new NotFoundException('Vote not found');
+    }
+
+    if (!vote.meeting) {
+      return null;
+    }
+
+    return vote.meeting.event.eventUserEnrollments.length;
   }
 }

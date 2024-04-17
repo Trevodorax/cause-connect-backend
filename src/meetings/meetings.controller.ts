@@ -19,6 +19,7 @@ import {
 } from 'src/events/events.controller';
 import { GetUser } from 'src/auth/decorators/user.decorator';
 import { UserResponse } from 'src/users/users.controller';
+import { VoteResponse } from 'src/votes/votes.controller';
 
 const createMeetingSchema = z.object({
   agendum: z.string(),
@@ -30,10 +31,16 @@ const updateMeetingSchema = z.object({
   event: updateEventSchema.optional(),
 });
 
-interface MeetingResponse {
+export interface MeetingResponse {
   id: string;
   agendum: string;
   event: EventResponse;
+}
+
+interface MeetingInfoForEventResponse {
+  id: string;
+  agendum: string;
+  votes: VoteResponse[];
 }
 
 @Controller('meetings')
@@ -238,6 +245,78 @@ export class MeetingsController {
       fullName: participant.fullName,
       role: participant.role,
       stripeCustomerId: participant.stripeCustomerId,
+    }));
+  }
+
+  @Get('for-event/:id')
+  async getMeetingInfoForEvent(
+    @Param('id') eventId: string,
+  ): Promise<MeetingInfoForEventResponse | { message: string }> {
+    const meeting = await this.meetingsService.getMeetingForEvent(eventId);
+
+    if (!meeting) {
+      return { message: 'No meeting found for this event' };
+    }
+
+    return {
+      id: meeting.id,
+      agendum: meeting.agendum,
+      votes:
+        meeting.votes?.map((vote) => ({
+          id: vote.id,
+          title: vote.title,
+          description: vote.description,
+          status: vote.status,
+          visibility: vote.visibility,
+          minPercentAnswers: vote.minPercentAnswers,
+          acceptanceCriteria: vote.acceptanceCriteria,
+        })) ?? [],
+    };
+  }
+
+  @Post(':id/votes')
+  async assignVoteToMeeting(
+    @Param('id') meetingId: string,
+    @Body() { voteId }: { voteId: string },
+  ): Promise<VoteResponse> {
+    const vote = await this.meetingsService.assignVoteToMeeting(
+      meetingId,
+      voteId,
+    );
+
+    return {
+      id: vote.id,
+      title: vote.title,
+      description: vote.description,
+      status: vote.status,
+      visibility: vote.visibility,
+      minPercentAnswers: vote.minPercentAnswers,
+      acceptanceCriteria: vote.acceptanceCriteria,
+    };
+  }
+
+  @Delete(':id/votes')
+  async removeVoteFromMeeting(
+    @Param('id') meetingId: string,
+    @Body() { voteId }: { voteId: string },
+  ): Promise<void> {
+    return this.meetingsService.removeVoteFromMeeting(meetingId, voteId);
+  }
+
+  @Get(':id/votes')
+  async getMeetingVotes(
+    @Param('id') meetingId: string,
+  ): Promise<VoteResponse[]> {
+    const votes = await this.meetingsService.getMeetingVotes(meetingId);
+
+    return votes.map((vote) => ({
+      id: vote.id,
+      title: vote.title,
+      description: vote.description,
+      status: vote.status,
+      visibility: vote.visibility,
+      minPercentAnswers: vote.minPercentAnswers,
+      acceptanceCriteria: vote.acceptanceCriteria,
     }));
   }
 }
