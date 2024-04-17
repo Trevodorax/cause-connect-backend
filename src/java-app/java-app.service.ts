@@ -166,7 +166,7 @@ export class JavaAppService {
         } else {
           const file: File = {
             name: fileName,
-            mimeType: 'application/java-archive',
+            mimeType: 'application/octet-stream',
             size: data.byteLength,
             data: data,
           };
