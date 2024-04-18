@@ -88,7 +88,7 @@ export class TasksController {
   }
 
   // delete task by id
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.INTERNAL)
   @Delete(':id')
   async deleteTask(@Param('id') id: string): Promise<TaskResponse> {
     const deletedTask = await this.tasksService.deleteTaskById(id);
