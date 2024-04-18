@@ -77,7 +77,7 @@ export class SettingsController {
     return settings;
   }
 
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.INTERNAL)
   @Get('theme')
   async getTheme(@GetUser() authenticatedUser: User): Promise<ThemeResponse> {
     return this.settingsService.getTheme(authenticatedUser.association.id);
