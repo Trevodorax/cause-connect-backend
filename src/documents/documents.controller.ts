@@ -58,9 +58,13 @@ export class DocumentsController {
     const validatedBody = uploadDocumentBodySchema.parse(body);
 
     const url = await this.filesService.uploadFile(file);
+    const fileTitle =
+      validatedBody?.title === ''
+        ? file.originalname
+        : validatedBody?.title ?? 'Untitled';
     const document = await this.documentsService.saveDocument(
       {
-        title: validatedBody.title ?? file.originalname,
+        title: fileTitle,
         fileUrl: url,
         visibility: validatedBody.visibility,
       },
