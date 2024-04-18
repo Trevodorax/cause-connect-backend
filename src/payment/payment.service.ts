@@ -132,6 +132,15 @@ export class PaymentService {
     );
   }
 
+  async getConnectedAccounts(): Promise<Stripe.ApiList<Stripe.Account>> {
+    return await this.stripe.accounts.list();
+  }
+
+  async getSetupConnectedAccounts(): Promise<Stripe.Account[]> {
+    const connectedAccounts = await this.getConnectedAccounts();
+    return connectedAccounts.data.filter((account) => account.charges_enabled);
+  }
+
   async createAccount(email: string): Promise<Stripe.Account> {
     return await this.stripe.accounts.create({
       type: 'express',

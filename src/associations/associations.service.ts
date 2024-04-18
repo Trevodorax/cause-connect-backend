@@ -174,4 +174,31 @@ export class AssociationsService {
     const settings = await this.settingsService.getSettings(associationId);
     return { id: settings.paymentData.stripeAccountId };
   }
+
+  async getSetUpAssociations(): Promise<Association[]> {
+    const associations = await this.associationRepository.find();
+    const associationsWithStripeAccountId = await Promise.all(
+      associations.map(async (association) => {
+        const settings = await this.settingsService.getSettings(association.id);
+        return {
+          ...association,
+          stripeAccountId: settings.paymentData.stripeAccountId,
+        };
+      }),
+    );
+    const setUpStripeAccounts =
+      await this.paymentService.getSetupConnectedAccounts();
+    return associationsWithStripeAccountId.reduce(
+      (acc: Array<Association>, association) => {
+        const account = setUpStripeAccounts.find(
+          (account) => account.id === association.stripeAccountId,
+        );
+        if (!account) {
+          return acc;
+        }
+        return acc.concat(association as Association);
+      },
+      [] as Association[],
+    );
+  }
 }

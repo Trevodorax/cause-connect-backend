@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
@@ -57,7 +58,12 @@ export class AssociationsController {
 
   @Public()
   @Get()
-  async getAllAssociations(): Promise<AssociationResponse[]> {
+  async getAllAssociations(
+    @Query('ready') ready?: 'true' | 'false',
+  ): Promise<AssociationResponse[]> {
+    if (ready === 'true') {
+      return this.associationsService.getSetUpAssociations();
+    }
     return this.associationsService.getAllAssociations();
   }
 
