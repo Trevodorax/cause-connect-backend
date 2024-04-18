@@ -101,6 +101,24 @@ export class UsersController {
     );
   }
 
+  @Roles(UserRole.ADMIN, UserRole.INTERNAL)
+  @Get('internal')
+  async getInternalUsers(@GetUser() user: User): Promise<UserResponse[]> {
+    const associationId = user.association.id;
+    return (await this.usersService.findAllByAssociation(associationId))
+      .filter(
+        (user) =>
+          user.role === UserRole.INTERNAL || user.role === UserRole.ADMIN,
+      )
+      .map((user) => ({
+        id: user.id,
+        email: user.email,
+        fullName: user.fullName,
+        role: user.role,
+        stripeCustomerId: user.stripeCustomerId,
+      }));
+  }
+
   @Get('me')
   async me(
     @GetUser() user: UserResponse,
