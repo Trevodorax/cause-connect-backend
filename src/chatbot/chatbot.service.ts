@@ -133,10 +133,12 @@ export class ChatbotService {
     };
   };
 
-  private responseToString = (response: Uint8Array) =>
-    Object.values(response)
-      .map((code) => String.fromCharCode(code))
-      .join('');
+  private responseToString = (response: Uint8Array) => {
+    const decoder = new TextDecoder('utf-8');
+    const answer = decoder.decode(response);
+
+    return answer;
+  };
 
   private loadSingleChain = (template: string) => {
     const prompt = PromptTemplate.fromTemplate(template);
