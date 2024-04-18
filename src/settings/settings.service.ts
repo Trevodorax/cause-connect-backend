@@ -220,13 +220,10 @@ export class SettingsService {
       throw new NotFoundException('Association not found');
     }
 
-    const settings = await this.settingsRepository.findOne({
-      where: { association: { id: associationId } },
-      relations: ['paymentData'],
-    });
-    if (!settings) {
-      throw new NotFoundException('Settings not found');
-    }
+    const settings = await this.paymentService.getSettings(
+      associationId,
+      false,
+    );
 
     const result = await this.paymentDataRepository.update(
       { id: settings.paymentData.id },
@@ -237,11 +234,9 @@ export class SettingsService {
     }
 
     if (data.contributionPrice) {
-      await this.paymentService.updateSubscriptions(
-        settings.paymentData.stripeAccountId,
-        associationId,
-        { constributionPrice: data.contributionPrice },
-      );
+      await this.paymentService.updateSubscriptions(associationId, {
+        constributionPrice: data.contributionPrice,
+      });
     }
 
     const modifiedPaymentData = await this.paymentDataRepository.findOne({

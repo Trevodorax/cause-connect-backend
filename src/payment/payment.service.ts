@@ -1,9 +1,7 @@
 import {
   Inject,
   Injectable,
-  InternalServerErrorException,
   NotFoundException,
-  UnauthorizedException,
   forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -49,6 +47,91 @@ export class PaymentService {
     });
   }
 
+  // ======================= UTILS ======================= //
+  async getSettings(
+    associationId: string,
+    checkForStripeAccount: boolean = true,
+  ): Promise<Settings> {
+    const settings = await this.settingsRepository.findOne({
+      where: { association: { id: associationId } },
+      relations: ['paymentData'],
+    });
+    if (!settings) {
+      throw new NotFoundException('Settings not found for this association');
+    }
+    if (checkForStripeAccount && !settings?.paymentData?.stripeAccountId) {
+      throw new NotFoundException(
+        'No Stripe account found for this association',
+      );
+    }
+    return settings;
+  }
+
+  private getCustomerId(
+    customer: string | Stripe.Customer | Stripe.DeletedCustomer,
+  ): string | null {
+    if (typeof customer === 'string') {
+      return customer;
+    }
+    if ('deleted' in customer && customer.deleted) {
+      return null;
+    }
+    return customer.id;
+  }
+
+  async getCustomerSubscriptions(
+    associationId: string,
+    stripeCustomerId: string,
+  ): Promise<Stripe.ApiList<Stripe.Subscription>> {
+    const settings = await this.getSettings(associationId);
+
+    return await this.stripe.subscriptions.list(
+      {
+        customer: stripeCustomerId,
+      },
+      {
+        stripeAccount: settings.paymentData.stripeAccountId,
+      },
+    );
+  }
+
+  private async getCustomerSubscriptionSchedules(
+    associationId: string,
+    stripeCustomerId: string,
+  ): Promise<Stripe.ApiList<Stripe.SubscriptionSchedule>> {
+    const settings = await this.getSettings(associationId);
+
+    return await this.stripe.subscriptionSchedules.list(
+      {
+        customer: stripeCustomerId,
+      },
+      {
+        stripeAccount: settings.paymentData.stripeAccountId,
+      },
+    );
+  }
+
+  private async getSchedule(
+    schedule: string | Stripe.SubscriptionSchedule,
+    stripeAccountId: string,
+  ): Promise<Stripe.SubscriptionSchedule> {
+    if (typeof schedule === 'string') {
+      return await this.stripe.subscriptionSchedules.retrieve(schedule, {
+        stripeAccount: stripeAccountId,
+      });
+    }
+
+    return schedule;
+  }
+
+  // ======================= ACCOUNTS ======================= //
+  async getAccount(associationId: string): Promise<Stripe.Account> {
+    const settings = await this.getSettings(associationId);
+    return await this.stripe.accounts.retrieve(
+      settings.paymentData.stripeAccountId,
+    );
+  }
+
   async createAccount(email: string): Promise<Stripe.Account> {
     return await this.stripe.accounts.create({
       type: 'express',
@@ -59,69 +142,6 @@ export class PaymentService {
 
   async deleteAccount(accountId: string): Promise<void> {
     await this.stripe.accounts.del(accountId);
-  }
-
-  async createAccountSession(
-    accountId: string,
-    associationId: string,
-  ): Promise<string> {
-    try {
-      const settings = await this.settingsRepository.findOne({
-        where: { association: { id: associationId } },
-        relations: ['paymentData'],
-      });
-      if (!settings?.paymentData?.stripeAccountId) {
-        throw new NotFoundException(
-          'No Stripe account found for this association',
-        );
-      }
-      if (settings.paymentData.stripeAccountId !== accountId) {
-        throw new UnauthorizedException(
-          'You are not allowed to access this account',
-        );
-      }
-
-      const accountSession = await this.stripe.accountSessions.create({
-        account: accountId,
-        components: {
-          account_onboarding: { enabled: true },
-        },
-      });
-
-      return accountSession.client_secret;
-    } catch (error) {
-      console.error(
-        'An error occurred when calling the Stripe API to create an account session',
-        error,
-      );
-      throw new InternalServerErrorException(
-        'Failed to create account session',
-      );
-    }
-  }
-
-  async getAccount(
-    accountId: string,
-    associationId: string,
-  ): Promise<Stripe.Account> {
-    const settings = await this.settingsRepository.findOne({
-      where: { association: { id: associationId } },
-      relations: ['paymentData'],
-    });
-    if (!settings?.paymentData?.stripeAccountId) {
-      throw new NotFoundException(
-        'No Stripe account found for this association',
-      );
-    }
-    if (settings.paymentData.stripeAccountId !== accountId) {
-      throw new UnauthorizedException(
-        'You are not allowed to access this account',
-      );
-    }
-
-    return await this.stripe.accounts.retrieve(
-      settings.paymentData.stripeAccountId,
-    );
   }
 
   async createAccountWithProducts(
@@ -174,238 +194,25 @@ export class PaymentService {
     };
   }
 
-  async updateSubscriptions(
-    accountId: string,
-    associationId: string,
-    updateProductBody: UpdateProductDto,
-  ): Promise<void> {
-    const settings = await this.settingsRepository.findOne({
-      where: { association: { id: associationId } },
-      relations: ['paymentData'],
-    });
-    if (!settings?.paymentData?.stripeAccountId) {
-      throw new NotFoundException(
-        'No Stripe account found for this association',
-      );
-    }
-    if (settings.paymentData.stripeAccountId !== accountId) {
-      throw new UnauthorizedException(
-        'You are not allowed to access this account',
-      );
-    }
+  // ======================= ACCOUNT SESSIONS ======================= //
+  async createAccountSession(associationId: string): Promise<string> {
+    const settings = await this.getSettings(associationId);
 
-    const newPrice = await this.stripe.prices.create(
-      {
-        unit_amount: updateProductBody.constributionPrice,
-        currency: 'eur',
-        recurring: { interval: 'month' },
-        product: settings.paymentData.stripeContributionId,
+    const accountSession = await this.stripe.accountSessions.create({
+      account: settings.paymentData.stripeAccountId,
+      components: {
+        account_onboarding: { enabled: true },
       },
-      {
-        stripeAccount: accountId,
-      },
-    );
-
-    await this.stripe.products.update(
-      settings.paymentData.stripeContributionId,
-      {
-        default_price: newPrice.id,
-      },
-      {
-        stripeAccount: accountId,
-      },
-    );
-
-    const subscriptions = await this.stripe.subscriptions.list({
-      stripeAccount: accountId,
     });
-    subscriptions.data.forEach(async (subscription) => {
-      if (subscription.schedule !== null) {
-        if (typeof subscription.schedule === 'string') {
-          const schedule = await this.stripe.subscriptionSchedules.retrieve(
-            subscription.schedule,
-            {
-              stripeAccount: accountId,
-            },
-          );
 
-          await this.stripe.subscriptionSchedules.update(
-            schedule.id,
-            {
-              phases: [
-                {
-                  items: [
-                    {
-                      price:
-                        typeof schedule.phases[0].items[0].price === 'string'
-                          ? schedule.phases[0].items[0].price
-                          : schedule.phases[0].items[0].price.id,
-                      quantity: schedule.phases[0].items[0].quantity,
-                    },
-                  ],
-                  start_date: schedule.phases[0].start_date,
-                  end_date: schedule.phases[0].end_date,
-                },
-                {
-                  items: [
-                    {
-                      price: newPrice.id,
-                    },
-                  ],
-                },
-              ],
-            },
-            {
-              stripeAccount: accountId,
-            },
-          );
-        } else {
-          await this.stripe.subscriptionSchedules.update(
-            subscription.schedule.id,
-            {
-              phases: [
-                {
-                  items: [
-                    {
-                      price:
-                        typeof subscription.schedule.phases[0].items[0]
-                          .price === 'string'
-                          ? subscription.schedule.phases[0].items[0].price
-                          : subscription.schedule.phases[0].items[0].price.id,
-                      quantity:
-                        subscription.schedule.phases[0].items[0].quantity,
-                    },
-                  ],
-                  start_date: subscription.schedule.phases[0].start_date,
-                  end_date: subscription.schedule.phases[0].end_date,
-                },
-                {
-                  items: [
-                    {
-                      price: newPrice.id,
-                    },
-                  ],
-                },
-              ],
-            },
-            {
-              stripeAccount: accountId,
-            },
-          );
-        }
-      } else {
-        const createdSchedule = await this.stripe.subscriptionSchedules.create(
-          {
-            from_subscription: subscription.id,
-          },
-          {
-            stripeAccount: accountId,
-          },
-        );
-        await this.stripe.subscriptionSchedules.update(
-          createdSchedule.id,
-          {
-            phases: [
-              {
-                items: [
-                  {
-                    price:
-                      typeof createdSchedule.phases[0].items[0].price === 'string'
-                        ? createdSchedule.phases[0].items[0].price
-                        : createdSchedule.phases[0].items[0].price.id,
-                    quantity: createdSchedule.phases[0].items[0].quantity,
-                  },
-                ],
-                start_date: createdSchedule.phases[0].start_date,
-                end_date: createdSchedule.phases[0].end_date,
-              },
-              {
-                items: [
-                  {
-                    price: newPrice.id,
-                  },
-                ],
-              },
-            ],
-          },
-          {
-            stripeAccount: accountId,
-          },
-        );
-      }
-    });
-  }
-
-  async createCustomer(
-    accountId: string,
-    associationId: string,
-    createCustomerBody: CreateCustomerDto,
-  ): Promise<Stripe.Customer> {
-    try {
-      const settings = await this.settingsRepository.findOne({
-        where: { association: { id: associationId } },
-        relations: ['paymentData'],
-      });
-      if (!settings?.paymentData?.stripeAccountId) {
-        throw new NotFoundException(
-          'No Stripe account found for this association',
-        );
-      }
-      if (settings.paymentData.stripeAccountId !== accountId) {
-        throw new UnauthorizedException(
-          'You are not allowed to access this account',
-        );
-      }
-
-      return await this.stripe.customers.create(
-        {
-          email: createCustomerBody.email,
-        },
-        {
-          stripeAccount: accountId,
-        },
-      );
-    } catch (error) {
-      console.error(
-        'An error occurred when calling the Stripe API to create a customer',
-        error,
-      );
-      throw new InternalServerErrorException('Failed to create customer');
-    }
-  }
-
-  async getCustomer(
-    associationId: string,
-    customerId: string,
-  ): Promise<Stripe.Response<Stripe.Customer | Stripe.DeletedCustomer>> {
-    const settings = await this.settingsRepository.findOne({
-      where: { association: { id: associationId } },
-      relations: ['paymentData'],
-    });
-    if (!settings?.paymentData?.stripeAccountId) {
-      throw new NotFoundException(
-        'No Stripe account found for this association',
-      );
-    }
-
-    return await this.stripe.customers.retrieve(customerId, {
-      stripeAccount: settings.paymentData.stripeAccountId,
-    });
+    return accountSession.client_secret;
   }
 
   async createContributionCheckoutSession(
     associationId: string,
     customerId: string,
   ): Promise<string> {
-    const settings = await this.settingsRepository.findOne({
-      where: { association: { id: associationId } },
-      relations: ['paymentData'],
-    });
-    if (!settings?.paymentData?.stripeAccountId) {
-      throw new NotFoundException(
-        'No Stripe account found for this association',
-      );
-    }
+    const settings = await this.getSettings(associationId);
 
     const price = await this.stripe.prices.search(
       {
@@ -445,15 +252,7 @@ export class PaymentService {
     associationId: string,
     customerId?: string,
   ): Promise<string> {
-    const settings = await this.settingsRepository.findOne({
-      where: { association: { id: associationId } },
-      relations: ['paymentData'],
-    });
-    if (!settings?.paymentData?.stripeAccountId) {
-      throw new NotFoundException(
-        'No Stripe account found for this association',
-      );
-    }
+    const settings = await this.getSettings(associationId);
 
     const price = await this.stripe.prices.search(
       {
@@ -492,25 +291,6 @@ export class PaymentService {
     return String(session.client_secret);
   }
 
-  async getCheckoutSession(
-    associationId: string,
-    sessionId: string,
-  ): Promise<Stripe.Checkout.Session> {
-    const settings = await this.settingsRepository.findOne({
-      where: { association: { id: associationId } },
-      relations: ['paymentData'],
-    });
-    if (!settings?.paymentData?.stripeAccountId) {
-      throw new NotFoundException(
-        'No Stripe account found for this association',
-      );
-    }
-
-    return await this.stripe.checkout.sessions.retrieve(sessionId, {
-      stripeAccount: settings.paymentData.stripeAccountId,
-    });
-  }
-
   async getCheckoutSessions(
     stripeAccountId: string,
   ): Promise<Stripe.ApiList<Stripe.Checkout.Session>> {
@@ -519,66 +299,155 @@ export class PaymentService {
     });
   }
 
-  async getCustomerSubscriptions(
+  async getCheckoutSession(
     associationId: string,
-    stripeCustomerId: string,
-  ): Promise<Stripe.ApiList<Stripe.Subscription>> {
-    const settings = await this.settingsRepository.findOne({
-      where: { association: { id: associationId } },
-      relations: ['paymentData'],
-    });
-    if (!settings?.paymentData?.stripeAccountId) {
-      throw new NotFoundException(
-        'No Stripe account found for this association',
-      );
-    }
+    sessionId: string,
+  ): Promise<Stripe.Checkout.Session> {
+    const settings = await this.getSettings(associationId);
 
-    return await this.stripe.subscriptions.list(
-      {
-        customer: stripeCustomerId,
-      },
-      {
-        stripeAccount: settings.paymentData.stripeAccountId,
-      },
-    );
+    return await this.stripe.checkout.sessions.retrieve(sessionId, {
+      stripeAccount: settings.paymentData.stripeAccountId,
+    });
   }
 
-  async getCustomerSubscriptionSchedules(
+  // ======================= SUBSCRIPTIONS ======================= //
+  async updateSubscriptions(
     associationId: string,
-    stripeCustomerId: string,
-  ): Promise<Stripe.ApiList<Stripe.SubscriptionSchedule>> {
-    const settings = await this.settingsRepository.findOne({
-      where: { association: { id: associationId } },
-      relations: ['paymentData'],
-    });
-    if (!settings?.paymentData?.stripeAccountId) {
-      throw new NotFoundException(
-        'No Stripe account found for this association',
-      );
-    }
+    updateProductBody: UpdateProductDto,
+  ): Promise<void> {
+    const settings = await this.getSettings(associationId);
 
-    return await this.stripe.subscriptionSchedules.list(
+    const newPrice = await this.stripe.prices.create(
       {
-        customer: stripeCustomerId,
+        unit_amount: updateProductBody.constributionPrice,
+        currency: 'eur',
+        recurring: { interval: 'month' },
+        product: settings.paymentData.stripeContributionId,
       },
       {
         stripeAccount: settings.paymentData.stripeAccountId,
       },
     );
+
+    await this.stripe.products.update(
+      settings.paymentData.stripeContributionId,
+      {
+        default_price: newPrice.id,
+      },
+      {
+        stripeAccount: settings.paymentData.stripeAccountId,
+      },
+    );
+
+    const subscriptions = await this.stripe.subscriptions.list({
+      stripeAccount: settings.paymentData.stripeAccountId,
+    });
+    subscriptions.data.forEach(async (subscription) => {
+      let schedule: Stripe.SubscriptionSchedule;
+      if (subscription.schedule !== null) {
+        schedule = await this.getSchedule(
+          subscription.schedule,
+          settings.paymentData.stripeAccountId,
+        );
+      } else {
+        schedule = await this.stripe.subscriptionSchedules.create(
+          {
+            from_subscription: subscription.id,
+          },
+          {
+            stripeAccount: settings.paymentData.stripeAccountId,
+          },
+        );
+      }
+
+      await this.stripe.subscriptionSchedules.update(
+        schedule.id,
+        {
+          phases: [
+            {
+              items: [
+                {
+                  price:
+                    typeof schedule.phases[0].items[0].price === 'string'
+                      ? schedule.phases[0].items[0].price
+                      : schedule.phases[0].items[0].price.id,
+                  quantity: schedule.phases[0].items[0].quantity,
+                },
+              ],
+              start_date: schedule.phases[0].start_date,
+              end_date: schedule.phases[0].end_date,
+            },
+            {
+              items: [
+                {
+                  price: newPrice.id,
+                },
+              ],
+            },
+          ],
+        },
+        {
+          stripeAccount: settings.paymentData.stripeAccountId,
+        },
+      );
+    });
+  }
+
+  async cancelSubscription(
+    subscriptionId: string,
+    stripeAccountId: string,
+  ): Promise<void> {
+    await this.stripe.subscriptions.cancel(subscriptionId, {
+      stripeAccount: stripeAccountId,
+    });
+  }
+
+  async cancelSubscriptionSchedule(
+    subscriptionScheduleId: string,
+    stripeAccountId: string,
+  ): Promise<void> {
+    await this.stripe.subscriptionSchedules.cancel(subscriptionScheduleId, {
+      stripeAccount: stripeAccountId,
+    });
+  }
+
+  async cancelCustomerSubscriptions(
+    associationId: string,
+    stripeCustomerId: string,
+  ): Promise<void> {
+    const settings = await this.getSettings(associationId);
+
+    const subscriptions = await this.getCustomerSubscriptions(
+      associationId,
+      stripeCustomerId,
+    );
+    subscriptions.data.forEach(async (subscription) => {
+      if (subscription.status === 'active') {
+        await this.cancelSubscription(
+          subscription.id,
+          settings.paymentData.stripeAccountId,
+        );
+      }
+    });
+
+    const subscriptionSchedules = await this.getCustomerSubscriptionSchedules(
+      associationId,
+      stripeCustomerId,
+    );
+    subscriptionSchedules.data.forEach(async (subscriptionSchedule) => {
+      if (subscriptionSchedule.status === 'active') {
+        await this.cancelSubscriptionSchedule(
+          subscriptionSchedule.id,
+          settings.paymentData.stripeAccountId,
+        );
+      }
+    });
   }
 
   async getLateSubscriptions(
     associationId: string,
   ): Promise<Stripe.ApiList<Stripe.Subscription>> {
-    const settings = await this.settingsRepository.findOne({
-      where: { association: { id: associationId } },
-      relations: ['paymentData'],
-    });
-    if (!settings?.paymentData?.stripeAccountId) {
-      throw new NotFoundException(
-        'No Stripe account found for this association',
-      );
-    }
+    const settings = await this.getSettings(associationId);
 
     return await this.stripe.subscriptions.list(
       {
@@ -588,6 +457,34 @@ export class PaymentService {
         stripeAccount: settings.paymentData.stripeAccountId,
       },
     );
+  }
+
+  // ======================= CUSTOMERS ======================= //
+  async createCustomer(
+    associationId: string,
+    createCustomerBody: CreateCustomerDto,
+  ): Promise<Stripe.Customer> {
+    const settings = await this.getSettings(associationId);
+
+    return await this.stripe.customers.create(
+      {
+        email: createCustomerBody.email,
+      },
+      {
+        stripeAccount: settings.paymentData.stripeAccountId,
+      },
+    );
+  }
+
+  async getCustomer(
+    associationId: string,
+    customerId: string,
+  ): Promise<Stripe.Response<Stripe.Customer | Stripe.DeletedCustomer>> {
+    const settings = await this.getSettings(associationId);
+
+    return await this.stripe.customers.retrieve(customerId, {
+      stripeAccount: settings.paymentData.stripeAccountId,
+    });
   }
 
   async getLateUsers(associationId: string): Promise<UserResponse[]> {
@@ -615,18 +512,6 @@ export class PaymentService {
     return users.filter((user) => user !== null) as UserResponse[];
   }
 
-  getCustomerId(
-    customer: string | Stripe.Customer | Stripe.DeletedCustomer,
-  ): string | null {
-    if (typeof customer === 'string') {
-      return customer;
-    }
-    if ('deleted' in customer && customer.deleted) {
-      return null;
-    }
-    return customer.id;
-  }
-
   async sendReminderEmails(
     reminderEmailsDto: ReminderEmailsDto,
   ): Promise<void> {
@@ -634,65 +519,6 @@ export class PaymentService {
       await this.emailService.sendLateUserEmail({
         email,
       });
-    });
-  }
-
-  async cancelSubscription(
-    subscriptionId: string,
-    stripeAccountId: string,
-  ): Promise<void> {
-    await this.stripe.subscriptions.cancel(subscriptionId, {
-      stripeAccount: stripeAccountId,
-    });
-  }
-
-  async cancelSubscriptionSchedule(
-    subscriptionScheduleId: string,
-    stripeAccountId: string,
-  ): Promise<void> {
-    await this.stripe.subscriptionSchedules.cancel(subscriptionScheduleId, {
-      stripeAccount: stripeAccountId,
-    });
-  }
-
-  async cancelCustomerSubscriptions(
-    associationId: string,
-    stripeCustomerId: string,
-  ): Promise<void> {
-    const settings = await this.settingsRepository.findOne({
-      where: { association: { id: associationId } },
-      relations: ['paymentData'],
-    });
-    if (!settings?.paymentData?.stripeAccountId) {
-      throw new NotFoundException(
-        'No Stripe account found for this association',
-      );
-    }
-
-    const subscriptions = await this.getCustomerSubscriptions(
-      associationId,
-      stripeCustomerId,
-    );
-    subscriptions.data.forEach(async (subscription) => {
-      if (subscription.status === 'active') {
-        await this.cancelSubscription(
-          subscription.id,
-          settings.paymentData.stripeAccountId,
-        );
-      }
-    });
-
-    const subscriptionSchedules = await this.getCustomerSubscriptionSchedules(
-      associationId,
-      stripeCustomerId,
-    );
-    subscriptionSchedules.data.forEach(async (subscriptionSchedule) => {
-      if (subscriptionSchedule.status === 'active') {
-        await this.cancelSubscriptionSchedule(
-          subscriptionSchedule.id,
-          settings.paymentData.stripeAccountId,
-        );
-      }
     });
   }
 }

@@ -1,7 +1,6 @@
 import {
   Inject,
   Injectable,
-  InternalServerErrorException,
   NotFoundException,
   UnauthorizedException,
   UnprocessableEntityException,
@@ -116,16 +115,10 @@ export class UsersService {
       );
     }
 
-    let stripeCustomer;
-    try {
-      stripeCustomer = await this.paymentService.createCustomer(
-        settings.paymentData.stripeAccountId,
-        user.associationId,
-        { email: user.email },
-      );
-    } catch (error) {
-      throw new InternalServerErrorException('Failed to create customer');
-    }
+    const stripeCustomer = await this.paymentService.createCustomer(
+      user.associationId,
+      { email: user.email },
+    );
 
     // insert user into the database
     const result = await this.userRepository.insert({
@@ -133,7 +126,7 @@ export class UsersService {
       fullName: user.fullName,
       role: user.role,
       association: association,
-      stripeCustomerId: stripeCustomer?.id,
+      stripeCustomerId: stripeCustomer.id,
     });
     const userId = result.generatedMaps[0].id;
 

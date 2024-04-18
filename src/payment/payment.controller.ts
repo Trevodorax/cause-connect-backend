@@ -30,6 +30,7 @@ const createPublicDonationCheckoutSessionSchema = z.object({
 export class PaymentController {
   constructor(private readonly paymentService: PaymentService) {}
 
+  // ====================== ACCOUNTS ====================== //
   @Roles(UserRole.ADMIN)
   @Post('accounts')
   async createAccountWithProduct(
@@ -44,31 +45,52 @@ export class PaymentController {
     return this.paymentService.createAccountWithProducts(validBody);
   }
 
-  @Roles(UserRole.ADMIN, UserRole.INTERNAL, UserRole.EXTERNAL)
-  @Get('accounts/:accountId')
+  @Get('accounts')
   async getAccount(
-    @Param('accountId') accountId: string,
     @GetUser() authenticatedUser: User,
-  ): Promise<Stripe.Account | null> {
+  ): Promise<Stripe.Account> {
     return await this.paymentService.getAccount(
-      accountId,
       authenticatedUser.association.id,
     );
   }
 
   @Roles(UserRole.ADMIN)
-  @Post('accounts/:accountId/session')
-  async createAccountSession(
+  @Delete('accounts/:accountId')
+  async deleteAccount(@Param('accountId') accountId: string): Promise<void> {
+    return this.paymentService.deleteAccount(accountId);
+  }
+
+  @Roles(UserRole.ADMIN)
+  @Get('accounts/:accountId/checkout-sessions')
+  async getCheckoutSessions(
     @Param('accountId') accountId: string,
+  ): Promise<Stripe.ApiList<Stripe.Checkout.Session>> {
+    return this.paymentService.getCheckoutSessions(accountId);
+  }
+
+  // ====================== SESSIONS ====================== //
+  @Roles(UserRole.ADMIN)
+  @Post('sessions')
+  async createAccountSession(
     @GetUser() authenticatedUser: User,
   ): Promise<string | undefined> {
     return this.paymentService.createAccountSession(
-      accountId,
       authenticatedUser.association.id,
     );
   }
 
-  @Roles(UserRole.ADMIN, UserRole.INTERNAL, UserRole.EXTERNAL)
+  @Get('checkout/sessions/:sessionId/status')
+  async getCheckoutSession(
+    @Param('sessionId') sessionId: string,
+    @GetUser() authenticatedUser: User,
+  ): Promise<Stripe.Checkout.Session> {
+    return this.paymentService.getCheckoutSession(
+      authenticatedUser.association.id,
+      sessionId,
+    );
+  }
+
+  // ====================== CUSTOMERS ====================== //
   @Get('customers/:customerId')
   async getCustomer(
     @Param('customerId') customerId: string,
@@ -80,32 +102,46 @@ export class PaymentController {
     );
   }
 
-  @Roles(UserRole.ADMIN, UserRole.INTERNAL, UserRole.EXTERNAL)
-  @Post('customers/:customerId/checkout/contribution')
+  @Roles(UserRole.ADMIN)
+  @Get('late-users')
+  async getLateUsers(
+    @GetUser() authenticatedUser: User,
+  ): Promise<UserResponse[]> {
+    return this.paymentService.getLateUsers(authenticatedUser.association.id);
+  }
+
+  @Roles(UserRole.ADMIN)
+  @Post('late-users/send-reminder')
+  async sendLateUsersReminder(
+    @Body()
+    sendLateUsersReminderBody: z.infer<typeof sendReminderEmailsSchema>,
+  ): Promise<void> {
+    return this.paymentService.sendReminderEmails(sendLateUsersReminderBody);
+  }
+
+  // ====================== CHECKOUT SESSIONS ====================== //
+  @Post('checkout/contribution')
   async createContributionCheckoutSession(
-    @Param('customerId') customerId: string,
     @GetUser() authenticatedUser: User,
   ): Promise<string> {
     return this.paymentService.createContributionCheckoutSession(
       authenticatedUser.association.id,
-      customerId,
+      authenticatedUser.stripeCustomerId,
     );
   }
 
-  @Roles(UserRole.ADMIN, UserRole.INTERNAL, UserRole.EXTERNAL)
-  @Post('customers/:customerId/checkout/donation')
+  @Post('checkout/donation')
   async createPrivateDonationCheckoutSession(
-    @Param('customerId') customerId: string,
     @GetUser() authenticatedUser: User,
   ): Promise<string> {
     return this.paymentService.createDonationCheckoutSession(
       authenticatedUser.association.id,
-      customerId,
+      authenticatedUser.stripeCustomerId,
     );
   }
 
   @Public()
-  @Post('checkout/donation')
+  @Post('checkout/public-donation')
   async createPublicDonationCheckoutSession(
     @Body()
     createPublicDonationCheckoutSessionBody: z.infer<
@@ -120,58 +156,14 @@ export class PaymentController {
     );
   }
 
-  @Roles(UserRole.ADMIN, UserRole.INTERNAL, UserRole.EXTERNAL)
-  @Get('checkout/session/:sessionId/status')
-  async getCheckoutSession(
-    @Param('sessionId') sessionId: string,
-    @GetUser() authenticatedUser: User,
-  ): Promise<Stripe.Checkout.Session> {
-    return this.paymentService.getCheckoutSession(
-      authenticatedUser.association.id,
-      sessionId,
-    );
-  }
-
-  @Roles(UserRole.ADMIN, UserRole.INTERNAL, UserRole.EXTERNAL)
-  @Get('customers/:customerId/subscription')
-  async getCustomerSubscription(
-    @Param('customerId') customerId: string,
+  // ====================== SUBSCRIPTIONS ====================== //
+  @Get('subscriptions')
+  async getMySubscriptions(
     @GetUser() authenticatedUser: User,
   ): Promise<Stripe.ApiList<Stripe.Subscription>> {
     return this.paymentService.getCustomerSubscriptions(
       authenticatedUser.association.id,
-      customerId,
+      authenticatedUser.stripeCustomerId,
     );
-  }
-
-  @Roles(UserRole.ADMIN)
-  @Get('accounts/:accountId/checkout-sessions')
-  async getCheckoutSessions(
-    @Param('accountId') accountId: string,
-  ): Promise<Stripe.ApiList<Stripe.Checkout.Session>> {
-    return this.paymentService.getCheckoutSessions(accountId);
-  }
-
-  @Roles(UserRole.ADMIN)
-  @Get('late-users')
-  async getLateUsers(
-    @GetUser() authenticatedUser: User,
-  ): Promise<UserResponse[]> {
-    return this.paymentService.getLateUsers(authenticatedUser.association.id);
-  }
-
-  @Roles(UserRole.ADMIN)
-  @Delete('accounts/:accountId')
-  async deleteAccount(@Param('accountId') accountId: string): Promise<void> {
-    return this.paymentService.deleteAccount(accountId);
-  }
-
-  @Roles(UserRole.ADMIN)
-  @Post('late-users/send-reminder')
-  async sendLateUsersReminder(
-    @Body()
-    sendLateUsersReminderBody: z.infer<typeof sendReminderEmailsSchema>,
-  ): Promise<void> {
-    return this.paymentService.sendReminderEmails(sendLateUsersReminderBody);
   }
 }
