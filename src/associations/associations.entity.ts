@@ -23,7 +23,7 @@ export class Association {
   @Column({ default: '' })
   logo: string;
 
-  @Column()
+  @Column('varchar', { length: 1000 })
   description: string;
 
   @OneToMany(() => User, (user) => user.association)
