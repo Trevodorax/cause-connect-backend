@@ -49,7 +49,7 @@ export class User {
   @ManyToOne(() => Association, (association) => association.members)
   association: Association;
 
-  @OneToMany(() => Task, (task) => task.user)
+  @OneToMany(() => Task, (task) => task.user, { cascade: true })
   tasks: Task[];
 
   @ManyToMany(() => PollOption, (answer) => answer.responders)
