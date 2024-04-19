@@ -79,6 +79,7 @@ export class PaymentController {
     );
   }
 
+  @Public()
   @Get('checkout/sessions/:sessionId/status')
   async getCheckoutSession(
     @Param('sessionId') sessionId: string,
