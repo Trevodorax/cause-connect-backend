@@ -169,7 +169,7 @@ export class UsersService {
         data.email,
         user.association.id,
       );
-      if (existingUser) {
+      if (existingUser && existingUser.id !== user.id) {
         throw new UnprocessableEntityException('Email already exists');
       }
 
