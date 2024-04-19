@@ -7,6 +7,7 @@ import {
   UploadedFile,
   UseInterceptors,
   Body,
+  Delete,
 } from '@nestjs/common';
 import { JavaAppService } from './java-app.service';
 import { Response } from 'express';
@@ -69,6 +70,12 @@ export class JavaAppController {
     res.setHeader('Content-Type', file.mimeType);
     res.setHeader('Content-Length', file.size);
     res.send(file.data);
+  }
+
+  @Public()
+  @Delete('plugins/:id')
+  async deletePlugin(@Param('id') id: string) {
+    return this.javaAppService.deletePlugin(id);
   }
 
   @Public()

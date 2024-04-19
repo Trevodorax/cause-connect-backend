@@ -176,4 +176,15 @@ export class JavaAppService {
       });
     });
   }
+
+  async deletePlugin(id: string): Promise<PlugIn> {
+    const plugin = await this.getPlugin(id);
+    if (!plugin) {
+      throw new NotFoundException('Plugin not found');
+    }
+
+    await this.plugInRepository.delete(id);
+
+    return plugin;
+  }
 }
