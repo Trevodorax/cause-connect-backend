@@ -83,12 +83,8 @@ export class PaymentController {
   @Get('checkout/sessions/:sessionId/status')
   async getCheckoutSession(
     @Param('sessionId') sessionId: string,
-    @GetUser() authenticatedUser: User,
   ): Promise<Stripe.Checkout.Session> {
-    return this.paymentService.getCheckoutSession(
-      authenticatedUser.association.id,
-      sessionId,
-    );
+    return this.paymentService.getCheckoutSession(sessionId);
   }
 
   // ====================== CUSTOMERS ====================== //

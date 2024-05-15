@@ -13,6 +13,7 @@ import { UserResponse } from 'src/users/users.controller';
 import { EmailService } from 'src/email/email.service';
 import { UsersService } from 'src/users/users.service';
 import { ConfigService } from '@nestjs/config';
+import { CheckoutSession } from './checkout-session.entity';
 
 interface CreateAccountWithProductDto {
   email: string;
@@ -37,6 +38,8 @@ export class PaymentService {
   constructor(
     @InjectRepository(Settings)
     private settingsRepository: Repository<Settings>,
+    @InjectRepository(CheckoutSession)
+    private checkoutSessionRepository: Repository<CheckoutSession>,
     @Inject(forwardRef(() => UsersService))
     private usersService: UsersService,
     private emailService: EmailService,
@@ -254,6 +257,11 @@ export class PaymentService {
       },
     );
 
+    await this.checkoutSessionRepository.save({
+      sessionId: session.id,
+      associationId,
+    });
+
     return String(session.client_secret);
   }
 
@@ -297,6 +305,11 @@ export class PaymentService {
       },
     );
 
+    await this.checkoutSessionRepository.save({
+      sessionId: session.id,
+      associationId,
+    });
+
     return String(session.client_secret);
   }
 
@@ -309,10 +322,16 @@ export class PaymentService {
   }
 
   async getCheckoutSession(
-    associationId: string,
     sessionId: string,
   ): Promise<Stripe.Checkout.Session> {
-    const settings = await this.getSettings(associationId);
+    const session = await this.checkoutSessionRepository.findOne({
+      where: { sessionId: sessionId },
+    });
+    if (!session) {
+      throw new NotFoundException('Session not found');
+    }
+
+    const settings = await this.getSettings(session.associationId, true);
 
     return await this.stripe.checkout.sessions.retrieve(sessionId, {
       stripeAccount: settings.paymentData.stripeAccountId,
