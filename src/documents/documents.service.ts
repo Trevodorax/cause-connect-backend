@@ -15,90 +15,6 @@ import { v4 as uuid } from 'uuid';
 import { UsersService } from 'src/users/users.service';
 import { FilesAzureService } from 'src/files/files.azure.service';
 
-/*
-export enum DocumentVisibility {
-  PUBLIC = 'public',
-  PRIVATE = 'private',
-}
-
-@Entity()
-export class Document {
-  @PrimaryGeneratedColumn()
-  id: string;
-
-  @Column()
-  title: string;
-
-  @Column()
-  fileUrl: string;
-
-  @Column({ default: '' })
-  shareCode: string;
-
-  @OneToMany(
-    () => DocumentPermission,
-    (permission) => permission.sharedDocument,
-  )
-  shareCodePermissions: DocumentPermission[];
-
-  @UpdateDateColumn()
-  lastUpdateTime: Date;
-
-  @Column()
-  visibility: DocumentVisibility;
-
-  @OneToMany(() => DocumentAccess, (documentAccess) => documentAccess.document)
-  documentAccesses: DocumentAccess[];
-}
-
-export enum DocumentPermissionsEnum {
-  READ = 'read',
-  EDIT = 'edit',
-}
-
-@Entity()
-export class DocumentPermission {
-  @PrimaryGeneratedColumn()
-  id: string;
-
-  @Column({ type: 'simple-enum', enum: DocumentPermissionsEnum })
-  permission: DocumentPermissionsEnum;
-
-  @ManyToOne(
-    () => DocumentAccess,
-    (documentAccess) => documentAccess.permissions,
-  )
-  documentAccess: DocumentAccess;
-
-  @ManyToOne(() => Document, (document) => document.shareCodePermissions)
-  sharedDocument: Document;
-}
-
-@Entity()
-export class DocumentAccess {
-  @PrimaryGeneratedColumn()
-  id: string;
-
-  @Column()
-  documentId: string;
-
-  @Column()
-  userId: string;
-
-  @OneToMany(
-    () => DocumentPermission,
-    (permission) => permission.documentAccess,
-  )
-  permissions: DocumentPermission[];
-
-  @ManyToOne(() => Document, (document) => document.documentAccesses)
-  document: Document;
-
-  @ManyToOne(() => User, (user) => user.documentAccesses)
-  user: User;
-}
-*/
-
 interface NewDocumentDto {
   title: string;
   fileUrl: string;
@@ -323,24 +239,25 @@ export class DocumentsService {
       ),
     }));
 
-    const publicDocuments = await this.documentRepository.find({
-      where: { visibility: DocumentVisibility.PUBLIC },
-    });
+    // TODO: handle public documents via a public document access table
+    // const publicDocuments = await this.documentRepository.find({
+    //   where: { visibility: DocumentVisibility.PUBLIC },
+    // });
 
-    const publicDocumentsWithoutUserDocuments = publicDocuments.filter(
-      (publicDocument) =>
-        !userDocuments
-          .map((document) => document.document.id)
-          .includes(publicDocument.id),
-    );
+    // const publicDocumentsWithoutUserDocuments = publicDocuments.filter(
+    //   (publicDocument) =>
+    //     !userDocuments
+    //       .map((document) => document.document.id)
+    //       .includes(publicDocument.id),
+    // );
 
-    const publicDocumentsWithPermissions =
-      publicDocumentsWithoutUserDocuments.map((document) => ({
-        document,
-        permissions: [],
-      }));
+    // const publicDocumentsWithPermissions =
+    //   publicDocumentsWithoutUserDocuments.map((document) => ({
+    //     document,
+    //     permissions: [],
+    //   }));
 
-    return [...userDocuments, ...publicDocumentsWithPermissions];
+    return [...userDocuments /*, ...publicDocumentsWithPermissions*/];
   }
 
   async deleteDocument(userId: string, documentId: string): Promise<Document> {
